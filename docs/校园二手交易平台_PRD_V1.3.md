@@ -5,7 +5,7 @@
 适用角色：前端/后端/测试/AI原型
 关联原型：线上已实现版本，覆盖 v1 基线 ~ v12 共 13 个历史包
 上线周期：常规
-更新记录：V1.0 初始版本，基于 v9~v12 代码逆向整理；V1.1 版本演进补全至 v1~v12，小版本合并并新增能力引入时间线；V1.2 统一内部矛盾，新增数据字典与 DDL、API 契约、隐私合规与注销级联三个附录，并修正上传限制口径；V1.3 角标口径统一、注销软删方案定稿、分页与错误码契约收紧、DDL 字段规格对齐
+更新记录：V1.0 初始版本，基于 v9~v12 代码逆向整理；V1.1 版本演进补全至 v1~v12，小版本合并并新增能力引入时间线；V1.2 统一内部矛盾，新增数据字典与 DDL、API 契约、隐私合规与注销级联三个附录，并修正上传限制口径；V1.3 角标口径统一、注销软删方案定稿、分页与错误码契约收紧、DDL 字段规格对齐；V1.4 同步至 v15 代码基线，**标注信用分体系已移除（评价体系保留）**，补充 v13~v15 版本演进
 文档类型：**As-built PRD**（实现对齐型，非从零设计型）
 
 ---
@@ -57,6 +57,8 @@
 | **v10** | 12 项功能批量新增 | 大版本 | ① 搜索/标签筛选只返回已上架，默认首页仍显自己待审核 ② 私信三条越权校验（自聊 403/对方不存在 404/无历史且无来源 403）③ 求购按钮统一「🤝 立即出售」④ 发布成功 flash 提示 ⑤ 首页「加载更多」分页（10 条/页，卡片抽为 `_card.html` 公共宏）⑥ 个人中心新增「我发布的商品」管理，删除权限放开到卖家本人 ⑦ 管理后台状态 Tab 带数量角标 ⑧ 图表高度统一 340px ⑨ 收藏页新增详情/沟通/购买按钮 ⑩ 各入口私信统一携带 `product_id`（并恢复 v2 移除的首页卡片「私信」按钮）⑪ 看板样式对齐 ⑫ 全站响应式三档断点 |
 | **v11** | 学号选填 + 登录限流 | 体验 + 安全 | 学号由**必填改为选填**，登录不再强制跳 `/fill_student_id`；新增登录限流，同一「用户名小写 + 客户端 IP」连续失败 5 次锁定 10 分钟 |
 | **v12** | 代码质量重构 + 安全加固 | 重构 | 胖函数拆分（`home` 191→148 行、`profile` 186→23 行、`admin` 拆 4 个查询函数）；重复代码抽公共（新增 `constants.py`、`product_service.py`、`profile_service.py`、`product_detail.js`，`is_student_session` 复用）；接口字段精简——**`confirm_code` 改为仅卖家可见**（此前任何登录用户都能从详情接口读到）；收藏页信用默认值 C→B 与首页统一；个人中心账号被注销后 405 改为清 session 跳登录页；后台统计 SQL 由 35 次降为 11 次（统计卡片 4 次 + 日指标 4 次 GROUP BY + 成交额 TOP5 1 次 + 商品列表 count/list 2 次）。`v12_low_comment` 为同功能精简注释版 |
+| **v13~v14** | 结构重构与清理 | 重构，合并 | v14 再次重构目录结构；清理废弃代码与死注释；稳定性修复 |
+| **v15** | confirm_code 移除 + **信用分体系移除** | 功能移除 | 移除已放弃的 `confirm_code` 设计残留（5 处清理）；**移除信用分体系**（`credit_score`、`credit_level` 字段及 `update_user_credit` 计算逻辑，`users` 表与个人中心信用展示同步下线）；**评价体系保留**（`evaluations` 表、`/evaluate` 路由、1-5 星评价、个人中心发出/收到评价与星级分布图） |
 
 ### 0.4 能力引入时间线
 
@@ -69,7 +71,7 @@
 | 订单交易 | v1 | v6（订单私信）、v10（越权与并发校验） |
 | 收藏 | v1 | v5（爱心初始态）、v6（修复恒未收藏 bug）、v10（收藏页操作按钮） |
 | 私信 | v1 | v6（来源商品）、v7（昵称展示）、v9（商品卡片、权限）、v10（越权校验、恢复首页私信按钮并统一携带 product_id） |
-| 评价与信用 | v1 | — |
+| 评价与信用 | v1 | **v15 信用分移除，评价保留** |
 | 意见反馈 | v1 | v6（已回复未读角标） |
 | 管理后台 | v1 | v3（按钮可用性修复）、v10（状态 Tab）、v12（统计性能优化） |
 | 未读角标 | v6 | v10（全站页面铺开） |
@@ -183,7 +185,7 @@ app/
 
 | 表名 | 用途 | 关键字段 |
 |------|------|---------|
-| `users` | 用户 | username(UK)、password(hash)、nickname、role、ban_until、student_id(UK,可空)、credit_score、credit_level、last_login、login_count |
+| `users` | 用户 | username(UK)、password(hash)、nickname、role、ban_until、student_id(UK,可空)、~~credit_score~~【v15 已移除】、~~credit_level~~【v15 已移除】、last_login、login_count |
 | `products` | 商品 | name、price、seller、status、type、sold_status、sold_time、tags、confirm_code、desc_image、contact_image |
 | `orders` | 订单 | product_id、buyer、seller、status、contact、message |
 | `messages` | 私信 | sender、receiver、content、is_read、**product_id** |
@@ -329,7 +331,9 @@ app/
 | 待处理 `pending` | `yellow` | 用户已提交 |
 | 已回复 `resolved` | `green` | 管理员已回复，用户侧产生未读角标 |
 
-## 3. 信用体系
+## 3. 信用体系【已在 v15 移除，本节为 v1~v12 历史记录】
+
+> ⚠️ **V1.4 变更说明**：信用分体系（`credit_score`、`credit_level`、`update_user_credit`）已在 v15 移除。评价体系（1-5 星、发出/收到评价、星级分布图）保留。以下内容为 v1~v12 时期的历史设计，仅供回溯参考。
 
 ### 3.1 信用分计算
 
@@ -1177,7 +1181,7 @@ else:     INSERT，action='added'
 
 ---
 
-## M7 评价与信用
+## M7 评价与信用（信用分已在 v15 移除，评价保留）
 
 ### M7.1 需求背景与目标
 
@@ -1709,8 +1713,8 @@ CREATE TABLE IF NOT EXISTS users (
     role          VARCHAR(20)  NOT NULL DEFAULT 'student' COMMENT '角色：student / admin',
     ban_until     DATETIME     DEFAULT NULL COMMENT '禁言截止时间，NULL 表示未禁言',
     student_id    CHAR(15)     DEFAULT NULL COMMENT '学号，选填，15位数字且以20开头，全局唯一',
-    credit_score  INT          NOT NULL DEFAULT 100 COMMENT '信用分，新用户默认100',
-    credit_level  VARCHAR(2)   NOT NULL DEFAULT 'B' COMMENT '信用等级：S/A/B/C/D',
+    credit_score  INT          NOT NULL DEFAULT 100 COMMENT '信用分，新用户默认100【v15 已移除】',
+    credit_level  VARCHAR(2)   NOT NULL DEFAULT 'B' COMMENT '信用等级：S/A/B/C/D【v15 已移除】',
     last_login    DATETIME     DEFAULT NULL COMMENT '最近登录时间',
     login_count   INT          NOT NULL DEFAULT 0 COMMENT '累计登录次数',
     created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '注册时间',
