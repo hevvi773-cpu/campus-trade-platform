@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>部署架构图 · 校园二手交易平台</title>
+<style>
+body { margin:0; padding:24px; background:#F4F3EE; font-family:'PingFang SC','Segoe UI',Arial,sans-serif; }
+.container { max-width:900px; margin:0 auto; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div style="font-size:18px;font-weight:600;color:#1A1B1C;margin-bottom:20px;">校园二手交易平台 · 部署架构图</div>
+
+<div style="display:flex;flex-direction:column;align-items:center;gap:0;">
+
+  <div style="background:#fff;border:1px solid #E4E3DD;border-radius:12px;padding:14px 28px;text-align:center;min-width:220px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+    <div style="font-size:14px;font-weight:600;color:#1A1B1C;">🌐 客户端</div>
+    <div style="font-size:12px;color:#6B7280;margin-top:3px;">浏览器 / 手机（公网访问）</div>
+  </div>
+
+  <div style="color:#9BBBF4;font-size:18px;margin:6px 0;">↓ HTTP :80</div>
+
+  <div style="background:linear-gradient(135deg,rgba(155,187,244,0.12),rgba(155,187,244,0.25));border:1px solid #9BBBF4;border-radius:12px;padding:14px 28px;text-align:center;min-width:320px;">
+    <div style="font-size:14px;font-weight:600;color:#1A1B1C;">Nginx（反向代理）</div>
+    <div style="font-size:12px;color:#6B7280;margin-top:3px;">监听 0.0.0.0:80 · 静态文件 · proxy_pass 到 gunicorn</div>
+  </div>
+
+  <div style="color:#9BBBF4;font-size:18px;margin:6px 0;">↓ 127.0.0.1:8000</div>
+
+  <div style="background:linear-gradient(135deg,rgba(148,212,208,0.12),rgba(148,212,208,0.25));border:1px solid #94D4D0;border-radius:12px;padding:14px 28px;text-align:center;min-width:360px;">
+    <div style="font-size:14px;font-weight:600;color:#1A1B1C;">Gunicorn（WSGI 服务器）</div>
+    <div style="font-size:12px;color:#6B7280;margin-top:3px;">监听 127.0.0.1:8000 · 2 workers · wsgi:application · timeout 60s</div>
+  </div>
+
+  <div style="color:#94D4D0;font-size:18px;margin:6px 0;">↓ import app_v3</div>
+
+  <div style="background:linear-gradient(135deg,rgba(162,221,170,0.12),rgba(162,221,170,0.25));border:1px solid #A2DDAA;border-radius:12px;padding:14px 28px;text-align:center;min-width:400px;">
+    <div style="font-size:14px;font-weight:600;color:#1A1B1C;">Flask 应用（app_v3.py）</div>
+    <div style="font-size:12px;color:#6B7280;margin-top:6px;display:flex;flex-wrap:wrap;gap:5px;justify-content:center;">
+      <span style="background:#fff;padding:3px 10px;border-radius:6px;font-size:11px;">auth</span>
+      <span style="background:#fff;padding:3px 10px;border-radius:6px;font-size:11px;">home</span>
+      <span style="background:#fff;padding:3px 10px;border-radius:6px;font-size:11px;">products</span>
+      <span style="background:#fff;padding:3px 10px;border-radius:6px;font-size:11px;">orders</span>
+      <span style="background:#fff;padding:3px 10px;border-radius:6px;font-size:11px;">messages</span>
+      <span style="background:#fff;padding:3px 10px;border-radius:6px;font-size:11px;">favorites</span>
+      <span style="background:#fff;padding:3px 10px;border-radius:6px;font-size:11px;">profile</span>
+      <span style="background:#fff;padding:3px 10px;border-radius:6px;font-size:11px;">admin</span>
+    </div>
+  </div>
+
+  <div style="color:#A2DDAA;font-size:18px;margin:6px 0;">↓ 业务逻辑</div>
+
+  <div style="background:linear-gradient(135deg,rgba(228,212,143,0.12),rgba(228,212,143,0.25));border:1px solid #E4D48F;border-radius:12px;padding:14px 28px;text-align:center;min-width:360px;">
+    <div style="font-size:14px;font-weight:600;color:#1A1B1C;">Services（业务层）</div>
+    <div style="font-size:12px;color:#6B7280;margin-top:3px;">message_service · order_service · constants · db_helpers</div>
+  </div>
+
+  <div style="color:#E4D48F;font-size:18px;margin:6px 0;">↓ SQL（pymysql）</div>
+
+  <div style="background:linear-gradient(135deg,rgba(234,102,104,0.10),rgba(234,102,104,0.20));border:1px solid #EA6668;border-radius:12px;padding:14px 28px;text-align:center;min-width:320px;">
+    <div style="font-size:14px;font-weight:600;color:#1A1B1C;">MySQL（数据库）</div>
+    <div style="font-size:12px;color:#6B7280;margin-top:3px;">监听 127.0.0.1:3306 · 11 张表 · init_db() 自动建表/加列</div>
+  </div>
+
+</div>
+
+<div style="margin-top:24px;display:flex;gap:14px;flex-wrap:wrap;justify-content:center;">
+  <div style="background:#fff;border:1px solid #E4E3DD;border-radius:10px;padding:12px 18px;font-size:12px;color:#6B7280;min-width:180px;">
+    <span style="font-weight:600;color:#1A1B1C;">systemd</span><br>secondhand.service<br>ExecStartPre: init_db()
+  </div>
+  <div style="background:#fff;border:1px solid #E4E3DD;border-radius:10px;padding:12px 18px;font-size:12px;color:#6B7280;min-width:180px;">
+    <span style="font-weight:600;color:#1A1B1C;">虚拟环境</span><br>/home/ubuntu/my_dev/venv<br>Python + gunicorn + pymysql
+  </div>
+  <div style="background:#fff;border:1px solid #E4E3DD;border-radius:10px;padding:12px 18px;font-size:12px;color:#6B7280;min-width:180px;">
+    <span style="font-weight:600;color:#1A1B1C;">应用目录</span><br>/home/ubuntu/my_dev/app<br>.env 配置 · templates · static
+  </div>
+</div>
+
+</div>
+</body>
+</html>

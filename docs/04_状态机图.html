@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>状态机图 · 商品与订单状态流转</title>
+<style>
+body { margin:0; padding:24px; background:#F4F3EE; font-family:'PingFang SC','Segoe UI',Arial,sans-serif; }
+.container { max-width:1000px; margin:0 auto; }
+.state-node { display:inline-flex; flex-direction:column; align-items:center; justify-content:center; min-width:120px; min-height:60px; padding:10px 18px; border-radius:12px; font-size:13px; font-weight:600; text-align:center; line-height:1.4; }
+.state-pending { background:rgba(228,212,143,0.2); border:2px solid #E4D48F; color:#8B7B3F; }
+.state-approved { background:rgba(162,221,170,0.2); border:2px solid #A2DDAA; color:#237804; }
+.state-sold { background:rgba(155,187,244,0.2); border:2px solid #9BBBF4; color:#2F5496; }
+.state-rejected { background:rgba(234,102,104,0.15); border:2px solid #EA6668; color:#CF1322; }
+.state-confirmed { background:rgba(162,221,170,0.25); border:2px solid #52C41A; color:#135200; }
+.state-cancelled { background:rgba(180,180,180,0.2); border:2px solid #BFBFBF; color:#595959; }
+.arrow-h { display:inline-flex; flex-direction:column; align-items:center; justify-content:center; min-width:80px; font-size:11px; color:#6B7280; text-align:center; line-height:1.4; }
+.arrow-h .symbol { font-size:20px; color:#9BBBF4; line-height:1; }
+.section-title { font-size:15px; font-weight:600; color:#1A1B1C; margin:24px 0 14px; padding-left:10px; border-left:4px solid #9BBBF4; }
+.flow-row { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:4px; margin-bottom:14px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div style="font-size:18px;font-weight:600;color:#1A1B1C;margin-bottom:4px;">状态机图 · 商品与订单状态流转</div>
+<div style="font-size:12px;color:#6B7280;margin-bottom:8px;">v15 当前模式 · 商品审核 + 订单确认锁 + 评价解锁</div>
+
+<!-- 商品状态机 -->
+<div class="section-title">📦 商品状态机（products.status / sold_status）</div>
+
+<div class="flow-row">
+  <div class="state-node state-pending">pending<br><span style="font-size:10px;font-weight:400;">待审核</span></div>
+  <div class="arrow-h"><div class="symbol">→</div>管理员审核通过</div>
+  <div class="state-node state-approved">approved<br><span style="font-size:10px;font-weight:400;">已上架</span></div>
+  <div class="arrow-h"><div class="symbol">→</div>买家购买并确认</div>
+  <div class="state-node state-sold">sold<br><span style="font-size:10px;font-weight:400;">已售出</span></div>
+</div>
+
+<div class="flow-row">
+  <div class="state-node state-pending">pending<br><span style="font-size:10px;font-weight:400;">待审核</span></div>
+  <div class="arrow-h"><div class="symbol" style="color:#EA6668;">→</div>管理员拒绝</div>
+  <div class="state-node state-rejected">rejected<br><span style="font-size:10px;font-weight:400;">已拒绝</span></div>
+  <div class="arrow-h"><div class="symbol">→</div>修改后重新提交</div>
+  <div class="state-node state-pending">pending<br><span style="font-size:10px;font-weight:400;">待审核</span></div>
+</div>
+
+<div style="background:rgba(228,212,143,0.08);border:1px solid #E4D48F;border-radius:10px;padding:12px 16px;margin-top:8px;font-size:12px;color:#333;line-height:1.7;">
+  <span style="font-weight:600;color:#8B7B3F;">⏰ 超时机制：</span>商品发布后 pending 超过 24 小时自动审核通过（auto_approve_stale），无需管理员手动审核。<br>
+  <span style="font-weight:600;color:#2F5496;">📌 sold_status：</span>独立于 status，unsold（在售）→ sold（已售），sold_time 记录售出时间。
+</div>
+
+<!-- 订单状态机 -->
+<div class="section-title">🔒 订单状态机（orders.status · 确认锁核心）</div>
+
+<div class="flow-row">
+  <div class="state-node state-pending">pending<br><span style="font-size:10px;font-weight:400;">待卖家确认</span></div>
+  <div class="arrow-h"><div class="symbol" style="color:#52C41A;">→</div>卖家确认交易<br>POST /order/confirm/:id</div>
+  <div class="state-node state-confirmed">confirmed<br><span style="font-size:10px;font-weight:400;">交易已确认 ✓</span></div>
+</div>
+
+<div class="flow-row">
+  <div class="state-node state-pending">pending<br><span style="font-size:10px;font-weight:400;">待卖家确认</span></div>
+  <div class="arrow-h"><div class="symbol" style="color:#BFBFBF;">→</div>买家/卖家取消<br>POST /order/cancel/:id</div>
+  <div class="state-node state-cancelled">cancelled<br><span style="font-size:10px;font-weight:400;">已取消</span></div>
+</div>
+
+<div style="background:rgba(162,221,170,0.08);border:1px solid #A2DDAA;border-radius:10px;padding:12px 16px;margin-top:8px;font-size:12px;color:#333;line-height:1.7;">
+  <span style="font-weight:600;color:#237804;">🔓 评价解锁条件：</span>只有 orders.status = 'confirmed' 时，评价入口才解锁；pending 和 cancelled 状态均不可评价。<br>
+  <span style="font-weight:600;color:#2F5496;">🚫 防重复评价：</span>evaluations 表 UNIQUE(product_id)，每个商品只能被评价一次。
+</div>
+
+<!-- 评价状态 -->
+<div class="section-title">⭐ 评价状态（evaluations）</div>
+
+<div class="flow-row">
+  <div class="state-node" style="background:rgba(180,180,180,0.15);border:2px dashed #BFBFBF;color:#595959;">未评价<br><span style="font-size:10px;font-weight:400;">evaluations 无记录</span></div>
+  <div class="arrow-h"><div class="symbol" style="color:#DEBEF8;">→</div>订单 confirmed 后<br>买家提交评价</div>
+  <div class="state-node" style="background:rgba(222,190,248,0.2);border:2px solid #DEBEF8;color:#531DAB;">已评价<br><span style="font-size:10px;font-weight:400;">rating 1-5星 + content</span></div>
+</div>
+
+<div style="background:rgba(222,190,248,0.08);border:1px solid #DEBEF8;border-radius:10px;padding:12px 16px;margin-top:8px;font-size:12px;color:#333;line-height:1.7;">
+  <span style="font-weight:600;color:#531DAB;">📝 评价字段：</span>product_id（关联商品，UNIQUE）、from_user（评价人）、to_user（被评价人，通常是卖家）、rating（1-5星）、content（文字评价）、created_at。
+</div>
+
+</div>
+</body>
+</html>

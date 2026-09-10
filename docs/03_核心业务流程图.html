@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>核心业务流程图 · 确认锁交易闭环</title>
+<style>
+body { margin:0; padding:24px; background:#F4F3EE; font-family:'PingFang SC','Segoe UI',Arial,sans-serif; }
+.container { max-width:1100px; margin:0 auto; }
+.step { background:#fff; border:1px solid #E4E3DD; border-radius:8px; padding:9px 12px; font-size:12px; color:#333; text-align:center; width:92%; box-sizing:border-box; line-height:1.5; }
+.step.highlight { background:linear-gradient(135deg,rgba(162,221,170,0.15),rgba(162,221,170,0.3)); border-color:#A2DDAA; font-weight:600; }
+.step.waiting { background:rgba(228,212,143,0.12); border-color:#E4D48F; }
+.step.done { background:rgba(82,196,26,0.10); border-color:#52C41A; color:#237804; font-weight:600; }
+.step.cancel { background:rgba(234,102,104,0.08); border-color:#EA6668; color:#CF1322; }
+.arrow { color:#9BBBF4; font-size:16px; line-height:1; margin:2px 0; }
+.arrow-cross { color:#EA6668; font-size:16px; line-height:1; margin:2px 0; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div style="font-size:18px;font-weight:600;color:#1A1B1C;margin-bottom:4px;">核心业务流程图 ·「确认锁」交易闭环</div>
+<div style="font-size:12px;color:#6B7280;margin-bottom:20px;">v15 当前模式 · 购买填交易地址 → 卖家确认交易 → 评价解锁</div>
+
+<div style="display:flex;gap:0;border:1px solid #E4E3DD;border-radius:12px;overflow:hidden;">
+
+  <!-- 买家泳道 -->
+  <div style="flex:1;min-width:0;background:rgba(155,187,244,0.06);">
+    <div style="background:linear-gradient(135deg,rgba(155,187,244,0.2),rgba(155,187,244,0.35));padding:12px;text-align:center;font-size:14px;font-weight:600;border-bottom:1px solid #E4E3DD;">👤 买家</div>
+    <div style="padding:14px;display:flex;flex-direction:column;gap:4px;align-items:center;">
+      <div class="step">浏览商品列表/详情</div>
+      <div class="arrow">↓</div>
+      <div class="step highlight">发起购买<br><span style="font-size:11px;color:#6B7280;font-weight:400;">填写交易地址(orders.contact)</span></div>
+      <div class="arrow">↓</div>
+      <div class="step waiting">等待卖家确认交易</div>
+      <div class="arrow">↓ 卖家确认后</div>
+      <div class="step highlight">评价商品<br><span style="font-size:11px;color:#6B7280;font-weight:400;">1-5星 + 文字评价</span></div>
+      <div class="arrow">↓</div>
+      <div class="step done">交易完成 ✓</div>
+      <div style="margin-top:10px;width:92%;">
+        <div class="step cancel">取消订单（确认前可取消）</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 系统泳道 -->
+  <div style="flex:1;min-width:0;background:rgba(162,221,170,0.06);border-left:1px solid #E4E3DD;border-right:1px solid #E4E3DD;">
+    <div style="background:linear-gradient(135deg,rgba(162,221,170,0.2),rgba(162,221,170,0.35));padding:12px;text-align:center;font-size:14px;font-weight:600;border-bottom:1px solid #E4E3DD;">⚙️ 系统</div>
+    <div style="padding:14px;display:flex;flex-direction:column;gap:4px;align-items:center;">
+      <div class="step">展示商品（status=approved）</div>
+      <div class="arrow">↓</div>
+      <div class="step highlight">创建订单<br><span style="font-size:11px;color:#6B7280;font-weight:400;">orders.status = pending</span></div>
+      <div class="arrow">↓</div>
+      <div class="step">通知卖家（私信/消息提醒）</div>
+      <div class="arrow">↓ 卖家确认</div>
+      <div class="step highlight">更新订单状态<br><span style="font-size:11px;color:#6B7280;font-weight:400;">pending → confirmed</span></div>
+      <div class="arrow">↓</div>
+      <div class="step">解锁评价入口<br><span style="font-size:11px;color:#6B7280;font-weight:400;">校验 orders.status='confirmed'</span></div>
+      <div class="arrow">↓</div>
+      <div class="step">写入 evaluations 表<br><span style="font-size:11px;color:#6B7280;font-weight:400;">UNIQUE(product_id) 防重复评价</span></div>
+      <div style="margin-top:10px;width:92%;">
+        <div class="step cancel">订单取消 → status=cancelled<br><span style="font-size:11px;color:#6B7280;font-weight:400;">交易终止，不可评价</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 卖家泳道 -->
+  <div style="flex:1;min-width:0;background:rgba(244,179,147,0.06);">
+    <div style="background:linear-gradient(135deg,rgba(244,179,147,0.2),rgba(244,179,147,0.35));padding:12px;text-align:center;font-size:14px;font-weight:600;border-bottom:1px solid #E4E3DD;">🏪 卖家</div>
+    <div style="padding:14px;display:flex;flex-direction:column;gap:4px;align-items:center;">
+      <div class="step">发布商品<br><span style="font-size:11px;color:#6B7280;font-weight:400;">待审核(status=pending)</span></div>
+      <div class="arrow">↓ 审核通过</div>
+      <div class="step">商品上架<br><span style="font-size:11px;color:#6B7280;font-weight:400;">status=approved, sold_status=unsold</span></div>
+      <div class="arrow">↓ 收到订单</div>
+      <div class="step">收到订单通知</div>
+      <div class="arrow">↓</div>
+      <div class="step highlight">确认交易<br><span style="font-size:11px;color:#6B7280;font-weight:400;">POST /order/confirm/:id</span></div>
+      <div class="arrow">↓</div>
+      <div class="step waiting">等待买家评价</div>
+      <div class="arrow">↓</div>
+      <div class="step done">收到评价 ✓</div>
+      <div style="margin-top:10px;width:92%;">
+        <div class="step cancel">取消订单（确认前可取消）</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:18px;display:flex;gap:14px;flex-wrap:wrap;">
+  <div style="flex:1;min-width:240px;background:rgba(234,102,104,0.08);border:1px solid #EA6668;border-radius:10px;padding:12px 16px;">
+    <div style="font-size:13px;font-weight:600;color:#EA6668;margin-bottom:5px;">⚠️ 取消分支</div>
+    <div style="font-size:12px;color:#333;line-height:1.7;">买家或卖家在订单 confirmed 之前可取消订单 → orders.status = cancelled → 交易终止，评价入口不解锁</div>
+  </div>
+  <div style="flex:1;min-width:240px;background:rgba(228,212,143,0.10);border:1px solid #E4D48F;border-radius:10px;padding:12px 16px;">
+    <div style="font-size:13px;font-weight:600;color:#8B7B3F;margin-bottom:5px;">⏰ 超时自动审核</div>
+    <div style="font-size:12px;color:#333;line-height:1.7;">商品发布后 status=pending 超过 24 小时，系统自动审核通过（auto_approve_stale），减轻管理员审核压力</div>
+  </div>
+  <div style="flex:1;min-width:240px;background:rgba(155,187,244,0.10);border:1px solid #9BBBF4;border-radius:10px;padding:12px 16px;">
+    <div style="font-size:13px;font-weight:600;color:#2F5496;margin-bottom:5px;">🔒 评价防重复</div>
+    <div style="font-size:12px;color:#333;line-height:1.7;">evaluations 表 UNIQUE(product_id)，每个商品只能被评价一次；评价门槛校验 orders.status='confirmed'，未确认交易不可评价</div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

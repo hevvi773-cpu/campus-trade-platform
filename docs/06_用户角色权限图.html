@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>用户角色权限图 · 校园二手交易平台</title>
+<style>
+body { margin:0; padding:24px; background:#F4F3EE; font-family:'PingFang SC','Segoe UI',Arial,sans-serif; }
+.container { max-width:1000px; margin:0 auto; }
+.perm-table { width:100%; border-collapse:separate; border-spacing:0; background:#fff; border-radius:12px; overflow:hidden; border:1px solid #E4E3DD; }
+.perm-table th { padding:14px 12px; font-size:13px; font-weight:600; text-align:center; border-bottom:2px solid #E4E3DD; }
+.perm-table td { padding:10px 12px; font-size:12px; text-align:center; border-bottom:1px solid #F0F0EC; vertical-align:middle; }
+.perm-table tr:last-child td { border-bottom:none; }
+.perm-table .feature { text-align:left; font-weight:500; color:#1A1B1C; padding-left:16px; }
+.perm-table .category { background:rgba(0,0,0,0.02); font-weight:600; color:#6B7280; font-size:11px; text-align:left; padding-left:16px; letter-spacing:0.5px; }
+.yes { color:#52C41A; font-weight:700; font-size:16px; }
+.no { color:#BFBFBF; font-size:14px; }
+.role-guest { background:linear-gradient(135deg,rgba(180,180,180,0.15),rgba(180,180,180,0.25)); color:#595959; }
+.role-student { background:linear-gradient(135deg,rgba(155,187,244,0.2),rgba(155,187,244,0.35)); color:#2F5496; }
+.role-admin { background:linear-gradient(135deg,rgba(234,102,104,0.15),rgba(234,102,104,0.25)); color:#CF1322; }
+.note { margin-top:16px; background:rgba(155,187,244,0.08); border:1px solid #9BBBF4; border-radius:10px; padding:12px 16px; font-size:12px; color:#333; line-height:1.7; }
+.role-cards { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:18px; }
+.role-card { flex:1; min-width:200px; border-radius:12px; padding:14px 18px; }
+.role-card h3 { margin:0 0 6px; font-size:15px; }
+.role-card p { margin:0; font-size:12px; color:#595959; line-height:1.6; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div style="font-size:18px;font-weight:600;color:#1A1B1C;margin-bottom:4px;">用户角色权限图 · 校园二手交易平台</div>
+<div style="font-size:12px;color:#6B7280;margin-bottom:18px;">三级权限体系：游客(guest) → 学生(student) → 管理员(admin)</div>
+
+<div class="role-cards">
+  <div class="role-card" style="background:rgba(180,180,180,0.1);border:1px solid #BFBFBF;">
+    <h3 style="color:#595959;">👤 游客 (guest)</h3>
+    <p>未登录用户，仅可浏览公开内容。users.role 字段不存在，由 session 判断。</p>
+  </div>
+  <div class="role-card" style="background:rgba(155,187,244,0.1);border:1px solid #9BBBF4;">
+    <h3 style="color:#2F5496;">🎓 学生 (student)</h3>
+    <p>注册并登录的普通用户，users.role='student'。可进行完整交易流程。</p>
+  </div>
+  <div class="role-card" style="background:rgba(234,102,104,0.08);border:1px solid #EA6668;">
+    <h3 style="color:#CF1322;">🛡️ 管理员 (admin)</h3>
+    <p>users.role='admin'，初始账号 admin（密码从 .env 读取）。拥有全部权限 + 后台管理。</p>
+  </div>
+</div>
+
+<table class="perm-table">
+  <thead>
+    <tr>
+      <th style="width:40%;text-align:left;padding-left:16px;">功能 / 权限</th>
+      <th class="role-guest" style="width:20%;">👤 游客</th>
+      <th class="role-student" style="width:20%;">🎓 学生</th>
+      <th class="role-admin" style="width:20%;">🛡️ 管理员</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td class="category" colspan="4">🔍 浏览与搜索</td></tr>
+    <tr><td class="feature">浏览商品列表 / 首页</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+    <tr><td class="feature">查看商品详情 / 详情 API</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+    <tr><td class="feature">搜索商品 / 关键词搜索</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+    <tr><td class="feature">查看卖家公开信息</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+
+    <tr><td class="category" colspan="4">📝 发布与交易</td></tr>
+    <tr><td class="feature">发布商品（提交待审核）</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+    <tr><td class="feature">发起购买（填写交易地址）</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+    <tr><td class="feature">卖家确认交易（确认锁）</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+    <tr><td class="feature">取消订单（确认前）</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+    <tr><td class="feature">评价商品（confirmed 后解锁）</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+    <tr><td class="feature">标记商品已售</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+
+    <tr><td class="category" colspan="4">💬 社交与互动</td></tr>
+    <tr><td class="feature">私信卖家 / 收发消息</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+    <tr><td class="feature">收藏商品 / 取消收藏</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+    <tr><td class="feature">提交反馈 / 查看反馈回复</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+
+    <tr><td class="category" colspan="4">⚙️ 账号与个人中心</td></tr>
+    <tr><td class="feature">注册 / 登录 / 登出</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+    <tr><td class="feature">填写学号（student_id）</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+    <tr><td class="feature">个人中心 / 我发布的 / 我买到的</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+    <tr><td class="feature">修改密码 / 账号设置</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+
+    <tr><td class="category" colspan="4">🛡️ 管理后台（仅 admin）</td></tr>
+    <tr><td class="feature">商品审核（通过 / 拒绝）</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+    <tr><td class="feature">用户管理（封禁 / 解封）</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+    <tr><td class="feature">反馈处理（回复 / 标记已解决）</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+    <tr><td class="feature">查看审计日志（action_logs）</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+    <tr><td class="feature">查看登录日志（login_logs）</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <span style="font-weight:600;color:#2F5496;">🔐 权限实现方式：</span>通过 session['username'] 判断是否登录，session['identity']（或 users.role）判断角色。路由层用装饰器或条件判断拦截未授权访问，如 admin 路由校验 `session.get('identity') == 'admin'`。<br>
+  <span style="font-weight:600;color:#CF1322;">⚠️ 封禁机制：</span>users.ban_until 字段记录封禁截止时间，被封禁用户登录时校验，封禁期间无法发布商品、购买等操作。<br>
+  <span style="font-weight:600;color:#237804;">⏰ 超时自动审核：</span>商品 pending 超过 24 小时自动通过（auto_approve_stale），减轻管理员审核负担，保证普通用户发布体验。
+</div>
+
+</div>
+</body>
+</html>

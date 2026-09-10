@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ER图 · 校园二手交易平台（v15）</title>
+<style>
+body { margin:0; padding:24px; background:#F4F3EE; font-family:'PingFang SC','Segoe UI',Arial,sans-serif; }
+.container { max-width:1100px; margin:0 auto; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div style="font-size:18px;font-weight:600;color:#1A1B1C;margin-bottom:4px;">校园二手交易平台 · ER 图（v15）</div>
+<div style="font-size:12px;color:#6B7280;margin-bottom:20px;">🔑 主键 · 🔗 外键/关联 · 共 11 张表 · confirm_code 已移除</div>
+
+<div style="display:flex;gap:18px;flex-wrap:wrap;justify-content:center;margin-bottom:10px;">
+
+  <div style="background:#fff;border:1px solid #9BBBF4;border-radius:10px;overflow:hidden;min-width:220px;flex:1 1 220px;max-width:280px;">
+    <div style="background:linear-gradient(135deg,rgba(155,187,244,0.2),rgba(155,187,244,0.35));padding:10px 14px;font-size:13px;font-weight:600;color:#1A1B1C;">users · 用户表</div>
+    <div style="padding:10px 14px;font-size:12px;color:#333;line-height:1.8;">
+      <div>🔑 id (INT)</div>
+      <div>username (VARCHAR) <span style="color:#EA6668;">UNIQUE</span></div>
+      <div>password (VARCHAR)</div>
+      <div>nickname (VARCHAR)</div>
+      <div>role · student/admin</div>
+      <div>student_id (VARCHAR) UNIQUE</div>
+      <div>ban_until / last_login / login_count</div>
+      <div>created_at</div>
+    </div>
+  </div>
+
+  <div style="background:#fff;border:2px solid #A2DDAA;border-radius:10px;overflow:hidden;min-width:240px;flex:1 1 240px;max-width:300px;box-shadow:0 2px 8px rgba(162,221,170,0.2);">
+    <div style="background:linear-gradient(135deg,rgba(162,221,170,0.25),rgba(162,221,170,0.4));padding:10px 14px;font-size:13px;font-weight:600;color:#1A1B1C;">products · 商品表 ⭐</div>
+    <div style="padding:10px 14px;font-size:12px;color:#333;line-height:1.8;">
+      <div>🔑 id (INT)</div>
+      <div>name · price (DECIMAL)</div>
+      <div>description (TEXT)</div>
+      <div>🔗 seller → users.username</div>
+      <div>status · pending/approved/rejected</div>
+      <div>sold_status · unsold/sold</div>
+      <div>sold_time / type / tags</div>
+      <div>contact / desc_image / contact_image</div>
+      <div>created_at</div>
+      <div style="color:#EA6668;font-size:11px;margin-top:3px;">❌ confirm_code 已移除（v15）</div>
+    </div>
+  </div>
+
+</div>
+
+<div style="text-align:center;font-size:12px;color:#6B7280;margin:0 0 18px;">users (1) ──&lt; (N) products ｜ 一个用户可发布多个商品</div>
+
+<div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:18px;">
+
+  <div style="background:#fff;border:1px solid #F4B393;border-radius:10px;overflow:hidden;min-width:220px;flex:1 1 220px;max-width:270px;">
+    <div style="background:linear-gradient(135deg,rgba(244,179,147,0.2),rgba(244,179,147,0.35));padding:10px 14px;font-size:13px;font-weight:600;color:#1A1B1C;">orders · 订单表 🔒</div>
+    <div style="padding:10px 14px;font-size:12px;color:#333;line-height:1.8;">
+      <div>🔑 id (INT)</div>
+      <div>🔗 product_id → products.id</div>
+      <div>🔗 buyer → users.username</div>
+      <div>🔗 seller → users.username</div>
+      <div>status · pending/confirmed/cancelled</div>
+      <div>contact（交易地址）</div>
+      <div>message（留言）</div>
+      <div>created_at / updated_at</div>
+    </div>
+  </div>
+
+  <div style="background:#fff;border:1px solid #DEBEF8;border-radius:10px;overflow:hidden;min-width:220px;flex:1 1 220px;max-width:270px;">
+    <div style="background:linear-gradient(135deg,rgba(222,190,248,0.2),rgba(222,190,248,0.35));padding:10px 14px;font-size:13px;font-weight:600;color:#1A1B1C;">evaluations · 评价表</div>
+    <div style="padding:10px 14px;font-size:12px;color:#333;line-height:1.8;">
+      <div>🔑 id (INT)</div>
+      <div>🔗 product_id → products.id <span style="color:#EA6668;">UNIQUE</span></div>
+      <div>🔗 from_user → users.username</div>
+      <div>🔗 to_user → users.username</div>
+      <div>rating · 1-5星</div>
+      <div>content (TEXT)</div>
+      <div>created_at</div>
+    </div>
+  </div>
+
+  <div style="background:#fff;border:1px solid #8BC8EA;border-radius:10px;overflow:hidden;min-width:220px;flex:1 1 220px;max-width:270px;">
+    <div style="background:linear-gradient(135deg,rgba(139,200,234,0.2),rgba(139,200,234,0.35));padding:10px 14px;font-size:13px;font-weight:600;color:#1A1B1C;">messages · 私信表</div>
+    <div style="padding:10px 14px;font-size:12px;color:#333;line-height:1.8;">
+      <div>🔑 id (INT)</div>
+      <div>🔗 sender → users.username</div>
+      <div>🔗 receiver → users.username</div>
+      <div>content (TEXT)</div>
+      <div>is_read (TINYINT)</div>
+      <div>🔗 product_id → products.id</div>
+      <div>created_at</div>
+    </div>
+  </div>
+
+</div>
+
+<div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:18px;">
+
+  <div style="background:#fff;border:1px solid #E4D48F;border-radius:10px;overflow:hidden;min-width:200px;flex:1 1 200px;max-width:250px;">
+    <div style="background:linear-gradient(135deg,rgba(228,212,143,0.2),rgba(228,212,143,0.35));padding:10px 14px;font-size:13px;font-weight:600;color:#1A1B1C;">favorites · 收藏表</div>
+    <div style="padding:10px 14px;font-size:12px;color:#333;line-height:1.8;">
+      <div>🔑 id (INT)</div>
+      <div>🔗 username → users.username</div>
+      <div>🔗 product_id → products.id</div>
+      <div>UNIQUE(username, product_id)</div>
+      <div>ON DELETE CASCADE</div>
+      <div>created_at</div>
+    </div>
+  </div>
+
+  <div style="background:#fff;border:1px solid #EAA7B2;border-radius:10px;overflow:hidden;min-width:200px;flex:1 1 200px;max-width:250px;">
+    <div style="background:linear-gradient(135deg,rgba(234,167,178,0.2),rgba(234,167,178,0.35));padding:10px 14px;font-size:13px;font-weight:600;color:#1A1B1C;">feedbacks · 反馈表</div>
+    <div style="padding:10px 14px;font-size:12px;color:#333;line-height:1.8;">
+      <div>🔑 id (INT)</div>
+      <div>🔗 username → users.username</div>
+      <div>title / content / reply</div>
+      <div>status · pending/resolved</div>
+      <div>image / is_read</div>
+      <div>created_at / updated_at</div>
+    </div>
+  </div>
+
+</div>
+
+<div style="background:rgba(0,0,0,0.02);border:1px dashed #E4E3DD;border-radius:10px;padding:14px;">
+  <div style="font-size:13px;font-weight:600;color:#6B7280;margin-bottom:10px;text-align:center;">📊 日志表（4张，均关联 users.username）</div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+    <div style="background:#fff;border:1px solid #E4E3DD;border-radius:8px;padding:10px 14px;font-size:11px;color:#333;min-width:150px;">
+      <div style="font-weight:600;color:#1A1B1C;">action_logs</div>
+      <div style="color:#6B7280;margin-top:3px;">审计日志 · action/target</div>
+    </div>
+    <div style="background:#fff;border:1px solid #E4E3DD;border-radius:8px;padding:10px 14px;font-size:11px;color:#333;min-width:150px;">
+      <div style="font-weight:600;color:#1A1B1C;">login_logs</div>
+      <div style="color:#6B7280;margin-top:3px;">登录日志 · ip/user_agent</div>
+    </div>
+    <div style="background:#fff;border:1px solid #E4E3DD;border-radius:8px;padding:10px 14px;font-size:11px;color:#333;min-width:150px;">
+      <div style="font-weight:600;color:#1A1B1C;">view_logs</div>
+      <div style="color:#6B7280;margin-top:3px;">浏览日志 · 🔗 product_id</div>
+    </div>
+    <div style="background:#fff;border:1px solid #E4E3DD;border-radius:8px;padding:10px 14px;font-size:11px;color:#333;min-width:150px;">
+      <div style="font-weight:600;color:#1A1B1C;">search_logs</div>
+      <div style="color:#6B7280;margin-top:3px;">搜索日志 · keyword</div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:18px;background:linear-gradient(135deg,rgba(162,221,170,0.08),rgba(162,221,170,0.15));border:1px solid #A2DDAA;border-radius:10px;padding:14px 18px;">
+  <div style="font-size:13px;font-weight:600;color:#1A1B1C;margin-bottom:6px;">🔒「确认锁」评价闭环（v15 当前模式）</div>
+  <div style="font-size:12px;color:#333;line-height:1.8;">
+    买家购买（写 orders.contact 交易地址）→ 卖家确认交易（orders.status: pending → confirmed）→ 评价解锁（evaluations 校验 orders.status='confirmed'）
+  </div>
+  <div style="font-size:11px;color:#6B7280;margin-top:5px;">confirm_code（第一版确认码方案）已在 v15 彻底移除，不再参与任何流程</div>
+</div>
+
+</div>
+</body>
+</html>
