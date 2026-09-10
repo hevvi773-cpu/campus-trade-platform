@@ -168,7 +168,8 @@ cd app
 pip install -r requirements.txt
 
 # 3. 配置环境变量
-# 编辑 .env，修改以下配置：
+# 复制 .env.example 为 .env，然后修改以下配置：
+cp .env.example .env
 #   SECONDHAND_DB_HOST / PORT / USER / PASSWORD / NAME
 #   SECONDHAND_SECRET_KEY
 #   SECONDHAND_ADMIN_PASSWORD

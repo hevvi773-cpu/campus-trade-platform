@@ -1,0 +1,27 @@
+# 备份文件（含敏感信息，不提交）
+*.backup.tar.gz
+*.bak
+
+# 环境变量（真实配置不提交）
+.env
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

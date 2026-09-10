@@ -168,7 +168,8 @@ cd app
 pip install -r requirements.txt
 
 # 3. Configure environment variables
-# Edit .env and update the following:
+# Copy .env.example to .env, then update the following:
+cp .env.example .env
 #   SECONDHAND_DB_HOST / PORT / USER / PASSWORD / NAME
 #   SECONDHAND_SECRET_KEY
 #   SECONDHAND_ADMIN_PASSWORD
