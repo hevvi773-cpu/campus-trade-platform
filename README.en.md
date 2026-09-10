@@ -16,7 +16,7 @@ Second-hand trading information on campus is scattered across QQ groups, campus 
 - **Opaque status**: No way to tell if an item is still available, already sold, or long forgotten
 - **Inconsistent search**: Some channels support keyword search, others don't at all
 
-This platform consolidates scattered information into a unified entry point, providing a complete trading loop: publish → review → search → order → chat → review → credit.
+This platform consolidates scattered information into a unified entry point, providing a complete trading loop: publish → review → search → order → chat → review.
 
 ## ✨ Core Features
 
@@ -27,7 +27,7 @@ This platform consolidates scattered information into a unified entry point, pro
 - Order trading (`SELECT ... FOR UPDATE` row-level lock prevents concurrent overselling)
 - In-app messaging (entering from a product auto-carries product context, rendered as a centered product card in chat)
 - Favorites (optimistic UI update + backend response correction)
-- Review & credit system (S/A/B/C/D five tiers, auto-recalculated by scoring formula)
+- Review system (buyer rates seller, 1-5 stars, sent/received reviews and rating distribution in profile)
 
 ### Users & Permissions
 
@@ -46,7 +46,7 @@ This platform consolidates scattered information into a unified entry point, pro
 ### Personal Center
 
 - Trading statistics (items sold / bought, total amounts)
-- Data visualization (6-month monthly trading bar chart, rating distribution, campus-wide credit tier distribution)
+- Data visualization (6-month monthly trading bar chart, personal rating distribution)
 - My published products management (status filter dropdown, delete)
 - Review records (sent / received)
 
