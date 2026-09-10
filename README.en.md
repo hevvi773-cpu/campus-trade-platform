@@ -126,8 +126,9 @@ app/
 
 | Metric | Value |
 |---|---|
-| Registered accounts | 26 (single-person multi-account end-to-end cross-validation) |
+| Registered users | 24 (single-person multi-account end-to-end cross-validation) |
 | Total products | 51 (pending 2 / approved 47 / rejected 2) |
+| Sold items | 17 (17 complete trading loops) |
 | Code versions | 15 |
 | Routes | 35 |
 | Database tables | 11 |
