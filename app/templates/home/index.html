@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+
+<html>
+
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>校园二手交易平台</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+
+    :root{--blue:#aee4ff;--pink:#ffccd5;--blue-dark:#5b9ecf;--pink-dark:#e8a0ac;}
+
+    *{box-sizing:border-box;margin:0;padding:0;}
+
+    body{background:linear-gradient(135deg,var(--blue) 0%,var(--pink) 50%,var(--blue) 100%);min-height:100vh;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;}
+
+    /* 头部 */
+
+    .header-bar{background:rgba(255,255,255,0.92);border-radius:18px;padding:18px 28px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;box-shadow:0 2px 16px rgba(0,0,0,0.06);backdrop-filter:blur(10px);}
+
+    .header-bar h1{font-size:1.7rem;font-weight:800;color:var(--blue-dark);margin:0;}
+
+    .header-bar .btn{font-size:0.85rem;border-radius:20px;padding:6px 16px;transition:all 0.2s;}
+
+    .header-bar .btn:hover{transform:translateY(-1px);}
+
+    .btn-publish{background:var(--pink-dark) !important;color:white !important;font-weight:700;border:none !important;box-shadow:0 2px 8px rgba(232,160,172,0.4);}
+
+    .btn-publish:hover{background:#d4909c !important;}
+
+    .identity-tag{background:linear-gradient(135deg,var(--blue),var(--pink));color:var(--blue-dark);padding:6px 16px;border-radius:20px;font-size:0.85rem;font-weight:600;}
+
+    /* flash 提示 */
+
+    .flash-msg{border-radius:14px;font-weight:600;box-shadow:0 2px 10px rgba(0,0,0,0.06);}
+
+    /* 公告横幅 */
+
+    .announcement{background:rgba(255,255,255,0.88);border-radius:16px;padding:24px 32px;text-align:center;margin-bottom:18px;box-shadow:0 2px 12px rgba(0,0,0,0.05);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.6);}
+
+    .announcement h2{font-size:1.4rem;font-weight:800;color:var(--pink-dark);margin-bottom:10px;}
+
+    .announcement p{color:#666;font-size:0.9rem;margin:4px 0;line-height:1.6;}
+
+    .disclaimer{background:linear-gradient(135deg,rgba(174,228,255,0.2),rgba(255,204,213,0.2));border-radius:10px;padding:12px 18px;margin-top:10px;font-size:0.82rem;color:#888;border:1px dashed rgba(200,200,200,0.5);}
+
+    /* 搜索 */
+
+    .search-box{display:flex;margin-bottom:18px;gap:0;}
+
+    .search-box input{flex:1;padding:12px 20px;border-radius:25px 0 0 25px;border:1px solid rgba(255,255,255,0.5);outline:none;font-size:0.9rem;background:rgba(255,255,255,0.85);backdrop-filter:blur(6px);color:#444;min-width:0;}
+
+    .search-box input::placeholder{color:#aaa;}
+
+    .search-box button{padding:12px 28px;border-radius:0 25px 25px 0;border:none;background:var(--blue-dark);color:white;font-weight:700;cursor:pointer;transition:all 0.2s;}
+
+    .search-box button:hover{background:#4e8bb8;}
+
+    /* Tab 切换 */
+
+    .tab-nav{display:flex;gap:8px;margin-bottom:18px;}
+
+    .tab-nav .tab-btn{padding:10px 22px;border-radius:22px;border:1.5px solid rgba(255,255,255,0.5);font-weight:600;font-size:0.9rem;cursor:pointer;transition:all 0.25s;background:rgba(255,255,255,0.4);color:var(--blue-dark);backdrop-filter:blur(4px);}
+
+    .tab-nav .tab-btn.active{background:white;color:var(--pink-dark);border-color:white;box-shadow:0 3px 12px rgba(0,0,0,0.1);}
+
+    .tab-nav .tab-btn:hover{background:rgba(255,255,255,0.7);}
+
+    .tab-nav .badge-count{background:rgba(0,0,0,0.08);padding:2px 10px;border-radius:12px;font-size:0.78rem;margin-left:4px;}
+
+    .tab-nav .tab-btn.active .badge-count{background:var(--pink);color:var(--pink-dark);}
+
+    .tag-nav{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+    .tag-nav .tag-chip{padding:6px 16px;border-radius:16px;border:1.5px solid rgba(255,255,255,0.6);font-size:0.85rem;font-weight:600;cursor:pointer;transition:all 0.25s;background:rgba(255,255,255,0.35);color:var(--blue-dark);text-decoration:none;backdrop-filter:blur(4px);}
+    .tag-nav .tag-chip:hover{background:rgba(255,255,255,0.7);}
+    .tag-nav .tag-chip.active{background:var(--blue-dark);color:#fff;border-color:var(--blue-dark);}
+    .card-tags{display:flex;gap:4px;flex-wrap:wrap;margin:6px 0 2px;}
+    .card-tags .tag{background:rgba(0,0,0,0.06);color:var(--blue-dark);font-size:0.72rem;padding:2px 8px;border-radius:10px;}
+
+    /* 商品卡片 */
+
+    .product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;}
+
+    .product-card{background:white;border-radius:16px;padding:18px;box-shadow:0 2px 12px rgba(0,0,0,0.06);transition:all 0.3s;position:relative;overflow:hidden;border:1px solid rgba(0,0,0,0.04);}
+
+    .product-card:hover{transform:translateY(-5px);box-shadow:0 8px 30px rgba(91,158,207,0.2);}
+
+    .product-card.sold-card{opacity:0.7;background:#fafafa;}
+
+    .product-card .card-badge{position:absolute;top:14px;right:14px;padding:4px 14px;border-radius:20px;font-size:0.72rem;font-weight:700;color:white;letter-spacing:0.5px;}
+
+    .card-badge.sell{background:var(--blue-dark);}
+
+    .card-badge.buy{background:var(--pink-dark);}
+
+    .card-badge.sold-badge{background:#bbb;}
+
+    .card-img{width:100%;height:155px;object-fit:contain;border-radius:12px;background:#fafafa;margin-bottom:12px;border:1px solid #f0f0f0;}
+
+    .card-noimg{width:100%;height:155px;border-radius:12px;background:linear-gradient(135deg,rgba(174,228,255,0.3),rgba(255,204,213,0.3));display:flex;align-items:center;justify-content:center;font-size:2.5rem;margin-bottom:12px;}
+
+    .card-name{font-size:1rem;font-weight:700;color:#444;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+    .card-price{font-size:1.25rem;font-weight:800;color:var(--pink-dark);margin-bottom:6px;}
+
+    .card-price.sold-price{text-decoration:line-through;color:#bbb;}
+
+    .card-meta{font-size:0.78rem;color:#999;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+
+
+    .card-actions{display:flex;gap:6px;flex-wrap:wrap;}
+
+    .card-actions .btn{font-size:0.78rem;padding:5px 12px;border-radius:18px;transition:all 0.2s;}
+
+    .card-actions .btn:hover{transform:scale(1.04);}
+
+    .own-tag{font-size:0.7rem;background:linear-gradient(135deg,var(--blue),var(--pink));color:var(--blue-dark);padding:2px 8px;border-radius:10px;margin-left:4px;font-weight:600;}
+
+    /* 收藏按钮 */
+    .fav-btn{background:none;border:none;font-size:1.2rem;cursor:pointer;padding:4px 8px;transition:all 0.2s;border-radius:50%;}
+    .fav-btn:hover{transform:scale(1.3);background:rgba(255,204,213,0.3);}
+    .fav-btn.faved{color:#e74c3c;}
+    .fav-btn.unfav{color:#ccc;}
+
+    /* 加载更多 */
+    .load-more-wrap{text-align:center;margin:26px 0 10px;}
+    .load-more-btn{padding:12px 44px;border-radius:26px;border:1.5px solid rgba(255,255,255,0.7);background:rgba(255,255,255,0.85);color:var(--blue-dark);font-weight:700;font-size:0.95rem;cursor:pointer;transition:all 0.25s;box-shadow:0 2px 10px rgba(0,0,0,0.06);}
+    .load-more-btn:hover{background:#fff;transform:translateY(-1px);}
+    .load-more-btn:disabled{opacity:0.6;cursor:default;transform:none;}
+    .no-more-text{color:rgba(91,158,207,0.7);font-size:0.9rem;font-weight:600;}
+
+    /* 空态 */
+
+    .empty-state{text-align:center;padding:80px 0;color:rgba(91,158,207,0.6);grid-column:1/-1;}
+
+    .empty-state .icon{font-size:4rem;margin-bottom:16px;}
+
+    /* ===== 响应式 ===== */
+
+    /* 桌面端（≥992px）：按钮加大，修复过小问题 */
+    @media(min-width:992px){
+        .card-actions .btn{font-size:0.9rem;padding:7px 16px;}
+        .header-bar .btn{font-size:0.95rem;padding:8px 18px;}
+        .tab-nav .tab-btn{font-size:0.95rem;padding:11px 26px;}
+    }
+
+    /* 平板端（768px~991px）：保持现状，不做改动 */
+
+    /* 手机端（<768px）：加大触控面积 */
+    @media(max-width:767px){
+
+        .header-bar{flex-direction:column;gap:10px;text-align:center;padding:16px;}
+
+        .header-bar h1{font-size:1.35rem;}
+
+        .header-bar .btn{font-size:0.9rem;padding:9px 16px;min-height:38px;}
+
+        .product-grid{grid-template-columns:1fr;}
+
+        .container{padding:12px !important;}
+
+        .card-actions .btn{font-size:0.88rem;padding:8px 15px;min-height:38px;}
+
+        .tab-nav{flex-wrap:wrap;}
+
+        .tab-nav .tab-btn{flex:1;min-width:100px;font-size:0.88rem;padding:10px 8px;}
+
+        .search-box button{padding:12px 18px;}
+
+        .announcement{padding:18px;}
+
+        .load-more-btn{width:100%;}
+
+    }
+
+</style>
+
+{% include '_badges.html' %}
+</head>
+
+<body>
+
+<div class="container" style="max-width:1300px;margin:0 auto;padding:20px;">
+
+    <!-- 头部 -->
+
+    <div class="header-bar">
+
+        <h1>🏫 校园二手交易</h1>
+
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;">
+
+            {% if current_identity == 'student' %}
+
+                <span class="identity-tag">👨‍🎓 {{ current_user }}</span>
+
+                {% from '_badges.html' import badge_link %}
+                {{ badge_link(url_for('messages.messages_list'), '💬', '消息', badges.message if badges else 0) }}
+                {{ badge_link(url_for('orders.my_orders'), '📋', '我的订单', badges.order if badges else 0) }}
+
+                <a href="/favorites" class="btn btn-light btn-sm">⭐ 收藏</a>
+
+                {{ badge_link(url_for('feedback.feedback_list'), '📝', '反馈', badges.feedback if badges else 0) }}
+
+                <a href="/publish" class="btn btn-publish btn-sm">📦 发布</a>
+
+                <a href="/profile" class="btn btn-light btn-sm">👤 个人中心</a>
+
+                <form method="POST" action="{{ url_for('logout') }}" class="d-inline">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-light btn-sm">退出</button>
+                </form>
+
+            {% elif current_identity == 'admin' %}
+
+                <span class="identity-tag">🔧 {{ current_user }}</span>
+
+                <a href="/admin" class="btn btn-publish btn-sm">管理</a>
+
+                <form method="POST" action="{{ url_for('logout') }}" class="d-inline">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-light btn-sm">退出</button>
+                </form>
+
+            {% else %}
+
+                <span class="identity-tag">👤 游客</span>
+
+                <a href="/login_page" class="btn btn-publish btn-sm">登录</a>
+
+                <a href="/login_page#register" class="btn btn-light btn-sm">注册</a>
+
+            {% endif %}
+
+            {% if ban_until %}<span class="badge bg-danger">🚫 禁言至 {{ ban_until }}</span>{% endif %}
+
+        </div>
+
+    </div>
+
+    <!-- flash 提示（如：发布成功，等待审核） -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for m in messages %}<div class="alert alert-success flash-msg">{{ m }}</div>{% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- 公告 -->
+
+    <div class="announcement">
+
+        <h2>🎉 邀请测试中</h2>
+
+        <p>感谢关注校园二手交易平台！目前我们仍处于<strong>邀请测试阶段</strong>，功能持续完善中。</p>
+
+        <p>💡 平台提供<strong>商品浏览、发布与站内聊天</strong>功能，买卖双方可在线沟通。</p>
+
+        <div class="disclaimer">
+
+            ⚠️ <strong>免责声明：</strong>本平台仅供信息展示与沟通交流，不参与实际交易过程。所有线下交易行为请买卖双方自行协商并选择安全合适的交易方式，交易风险由双方自行承担。平台不对交易纠纷、商品质量问题、资金安全等承担任何责任。
+
+        </div>
+
+    </div>
+
+    <!-- 搜索 -->
+
+    <form method="GET" action="/" class="search-box">
+
+        <input type="text" name="q" placeholder="🔍 搜索商品名称或描述..." value="{{ q }}">
+
+        <button type="submit">搜索</button>
+
+    </form>
+
+    <!-- Tab 切换 -->
+
+    <div class="tab-nav">
+
+        <button class="tab-btn active" onclick="switchTab('sell')">🛒 出售中<span class="badge-count">{{ sell_products|length }}</span></button>
+
+        <button class="tab-btn" onclick="switchTab('buy')">📋 求购中<span class="badge-count">{{ buy_products|length }}</span></button>
+
+        <button class="tab-btn" onclick="switchTab('sold')">✅ 已售出<span class="badge-count">{{ sold_products|length }}</span></button>
+
+    </div>
+
+    <!-- 标签筛选 -->
+    <div class="tag-nav">
+        <a href="?{% if q %}q={{ q|urlencode }}{% endif %}" class="tag-chip {% if not tag %}active{% endif %}">全部</a>
+        {% for t in all_tags %}<a href="?{% if q %}q={{ q|urlencode }}&{% endif %}tag={{ t|urlencode }}" class="tag-chip {% if tag == t %}active{% endif %}">{{ t }}</a>{% endfor %}
+    </div>
+
+    {% from 'home/_card.html' import product_card with context %}
+
+    <!-- 出售面板 -->
+
+    <div id="tab-sell" class="product-grid" style="display:grid;">
+
+        {% if sell_products %}
+            {% for p in sell_products %}{{ product_card(p, 'sell') }}{% endfor %}
+        {% else %}<div class="empty-state"><div class="icon">🛒</div><p>暂无出售中的商品</p></div>{% endif %}
+
+    </div>
+
+    <!-- 求购面板 -->
+
+    <div id="tab-buy" class="product-grid" style="display:none;">
+
+        {% if buy_products %}
+            {% for p in buy_products %}{{ product_card(p, 'buy') }}{% endfor %}
+        {% else %}<div class="empty-state"><div class="icon">📋</div><p>暂无求购中的商品</p></div>{% endif %}
+
+    </div>
+
+    <!-- 已售出面板 -->
+
+    <div id="tab-sold" class="product-grid" style="display:none;">
+
+        {% if sold_products %}
+            {% for p in sold_products %}{{ product_card(p, 'sold') }}{% endfor %}
+        {% else %}<div class="empty-state"><div class="icon">✅</div><p>暂无已售出的商品</p></div>{% endif %}
+
+    </div>
+
+    <!-- 加载更多 -->
+
+    <div class="load-more-wrap" id="loadMoreWrap">
+        {% if has_more %}
+        <button class="load-more-btn" id="loadMoreBtn" data-page="{{ page }}">加载更多</button>
+        {% else %}
+        <span class="no-more-text">没有更多了</span>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- 详情弹窗 -->
+
+<div class="modal fade" id="detailModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content" style="border-radius:16px;"><div class="modal-header"><h5 style="color:var(--blue-dark);">📄 商品详情</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="detailContent"><div class="text-center py-4"><div class="spinner-border" style="color:var(--pink-dark);"></div></div></div></div></div></div>
+
+<script>
+
+function switchTab(tab) {
+
+    document.querySelectorAll('.product-grid').forEach(g => g.style.display = 'none');
+
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+    document.getElementById('tab-' + tab).style.display = 'grid';
+
+    document.querySelector(`.tab-btn[onclick*="'${tab}'"]`).classList.add('active');
+
+}
+
+const currentUsername = '{{ session.username }}';
+
+const currentIdentity = '{{ current_identity }}';
+
+const isMuted = {{ 'true' if ban_until else 'false' }};
+
+const messageUrlTemplate = {{ url_for('messages.chat_detail', receiver='__receiver__')|tojson }};
+const csrfToken = {{ csrf_token()|tojson }};
+
+function guestGuard(action) {
+    if (!currentUsername || currentIdentity === 'guest') {
+        alert('请先登录后再' + action);
+        window.location.href = '/login_page';
+        return true;
+    }
+    if (isMuted) {
+        alert('您当前处于禁言期，无法' + action);
+        return true;
+    }
+    return false;
+}
+
+function toggleFav(pid, el) {
+    if (guestGuard('收藏')) {
+        return false;
+    }
+    fetch('/favorite/toggle/' + pid, {
+        method: 'POST',
+        headers: {'X-CSRF-Token': csrfToken}
+    })
+        .then(response => {
+            if (!response.ok) throw new Error('收藏操作失败');
+            if (el.classList.contains('faved')) {
+                el.classList.remove('faved');
+                el.classList.add('unfav');
+                el.innerHTML = '♡';
+            } else {
+                el.classList.remove('unfav');
+                el.classList.add('faved');
+                el.innerHTML = '♥';
+            }
+        })
+        .catch(() => alert('收藏操作失败，请刷新页面后重试'));
+    return false;
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const m = /[?&]p=(\d+)/.exec(location.search);
+    const wantBuy = /[?&]buy=1/.test(location.search);
+    if (m) {
+        const pid = parseInt(m[1], 10);
+        try {
+            if (wantBuy) {
+                // 从收藏页「立即购买/立即出售」进入：直接打开下单弹窗
+                fetch('/api/product/' + pid).then(r => r.json()).then(res => {
+                    if (res.code === 0) {
+                        openBuyModal(pid, res.data.name, res.data.price);
+                    } else {
+                        showDetail(pid);
+                    }
+                }).catch(() => showDetail(pid));
+            } else {
+                showDetail(pid);
+            }
+        } catch (e) {}
+    }
+});
+
+function showDetail(pid) {
+
+    if (guestGuard('查看商品详情')) {
+        return;
+    }
+    fetch('/api/product/' + pid).then(r=>r.json()).then(res=>{
+
+        if(res.code!==0) return alert('加载失败');
+
+        const d=res.data;
+        const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        for (const k of ['name','seller','contact','description','type_text','status_text','sold_status_text','created_at','sold_time']) if (d[k] !== undefined) d[k] = esc(d[k]);
+        if (d.desc_image) d.desc_image = esc(d.desc_image);
+        if (d.contact_image) d.contact_image = esc(d.contact_image);
+        if (d.evaluation) { d.evaluation.from_user = esc(d.evaluation.from_user); d.evaluation.content = esc(d.evaluation.content); d.evaluation.created_at = esc(d.evaluation.created_at); }
+
+        const buyLabel = d.type === 0 ? '🤝 立即出售' : '🛒 立即购买';
+
+        let html=`<div class="row mb-2"><div class="col-4 fw-bold">名称</div><div class="col-8">${d.name}</div></div>`;
+
+        html+=`<div class="row mb-2"><div class="col-4 fw-bold">价格</div><div class="col-8">¥${d.price}</div></div>`;
+
+        html+=`<div class="row mb-2"><div class="col-4 fw-bold">类型</div><div class="col-8">${d.type_text}</div></div>`;
+
+        if (d.tags) { html+=`<div class="row mb-2"><div class="col-4 fw-bold">标签</div><div class="col-8">${d.tags.split(',').filter(Boolean).map(t=>`<span class="badge bg-light text-dark me-1" style="border:1px solid rgba(0,0,0,0.1);">${t}</span>`).join('')}</div></div>`; }
+
+        html+=`<div class="row mb-2"><div class="col-4 fw-bold">卖家</div><div class="col-8">${d.seller}</div></div>`;
+
+        html+=`<div class="row mb-2"><div class="col-4 fw-bold">联系方式</div><div class="col-8">${d.contact}</div></div>`;
+
+        html+=`<div class="row mb-2"><div class="col-4 fw-bold">审核状态</div><div class="col-8">${d.status_text}</div></div>`;
+
+        html+=`<div class="row mb-2"><div class="col-4 fw-bold">交易状态</div><div class="col-8">${d.sold_status_text}</div></div>`;
+
+        html+=`<div class="row mb-2"><div class="col-4 fw-bold">发布时间</div><div class="col-8">${d.created_at}</div></div>`;
+
+        if(d.sold_time) html+=`<div class="row mb-2"><div class="col-4 fw-bold">售出时间</div><div class="col-8">${d.sold_time}</div></div>`;
+
+        html+=`<div class="row mb-2"><div class="col-4 fw-bold">描述</div><div class="col-8">${d.description||'无'}</div></div>`;
+
+        if(d.desc_image) html+=`<div class="mb-2"><img src="/${d.desc_image}" style="max-width:200px;border-radius:12px;"></div>`;
+
+        if(d.contact_image) html+=`<div class="mb-2"><img src="/${d.contact_image}" style="max-width:200px;border-radius:12px;"></div>`;
+
+        if(d.evaluation) {
+
+            html += `<hr><div class="mt-3"><h6>⭐ 用户评价</h6>
+
+                <p>评分：${'⭐'.repeat(d.evaluation.rating)} (${d.evaluation.rating}星)</p>
+
+                <p>评价人：${d.evaluation.from_user}</p>
+
+                <p>内容：${d.evaluation.content}</p>
+
+                <p>时间：${d.evaluation.created_at}</p></div>`;
+
+        }
+
+        if (currentIdentity === 'student' && currentUsername !== d.seller_username) {
+
+            const messageUrl = messageUrlTemplate.replace('__receiver__', encodeURIComponent(d.seller_username));
+            html += `<div class="mt-3">`;
+            if (d.sold_status !== 'sold') {
+                if (isMuted) {
+                    html += `<button class="btn btn-warning btn-sm me-2" style="border-radius:20px;opacity:0.5;cursor:not-allowed;" disabled title="您当前处于禁言期">${buyLabel}</button>`;
+                } else {
+                    html += `<button class="btn btn-warning btn-sm me-2" style="border-radius:20px;" onclick="closeDetailModal();openBuyModal(${pid}, decodeURIComponent('${encodeURIComponent(d.name)}'), ${d.price})">${buyLabel}</button>`;
+                }
+            }
+            if (isMuted) {
+                html += `<span class="btn btn-primary btn-sm" style="border-radius:20px;opacity:0.5;cursor:not-allowed;" title="您当前处于禁言期">💬 发消息</span></div>`;
+            } else {
+                html += `<a href="${messageUrl}?product_id=${pid}" class="btn btn-primary btn-sm" style="border-radius:20px;">💬 发消息</a></div>`;
+            }
+
+        } else if (!currentUsername || currentIdentity === 'guest') {
+            // 游客：操作按钮全部跳登录
+            const messageUrl = messageUrlTemplate.replace('__receiver__', encodeURIComponent(d.seller_username));
+            html += `<div class="mt-3">`;
+            if (d.sold_status !== 'sold') {
+                html += `<a href="/login_page" class="btn btn-warning btn-sm me-2" style="border-radius:20px;" title="请先登录">${buyLabel}</a>`;
+            }
+            html += `<a href="/login_page" class="btn btn-primary btn-sm" style="border-radius:20px;" title="请先登录">💬 发消息</a></div>`;
+        }
+
+        html += `<div class="mt-3">
+            <button class="btn btn-sm" style="border-radius:20px;background:rgba(255,204,213,0.3);color:var(--pink-dark);border:none;"
+                    onclick="toggleFav(${pid}, this);this.innerHTML=this.innerHTML==='♡ 收藏'?'♥ 已收藏':'♡ 收藏'">♡ 收藏</button>
+        </div>`;
+
+        document.getElementById('detailContent').innerHTML = html;
+
+        new bootstrap.Modal(document.getElementById('detailModal')).show();
+
+    }).catch(e=>alert('加载失败'));
+
+}
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- 下单弹窗 -->
+<div class="modal fade" id="buyModal" tabindex="-1">
+<div class="modal-dialog">
+<div class="modal-content" style="border-radius:16px;">
+<div class="modal-header" style="background:linear-gradient(135deg,#ffccd5,#ffebf0);">
+<h5 style="color:#e8a0ac;font-weight:800;">🛒 确认下单</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+<div class="modal-body">
+<p style="color:#666;">确认购买 <strong id="buyProductName"></strong> ？</p>
+<p style="font-size:1.4rem;font-weight:800;color:#e8a0ac;">￥<span id="buyProductPrice"></span></p>
+<form id="buyForm" method="POST" action="{{ url_for('orders.create_order') }}">
+<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+<input type="hidden" name="product_id" id="buyProductId">
+<div class="mb-3">
+<label class="form-label" style="font-weight:600;color:#444;">📱 您的联系方式（选填）</label>
+<input type="text" name="contact" class="form-control" placeholder="微信号/手机号" style="border-radius:12px;">
+</div>
+<div class="mb-3">
+<label class="form-label" style="font-weight:600;color:#444;">💬 留言（选填）</label>
+<textarea name="message" class="form-control" rows="2" placeholder="方便交易的时间、地点...
+注：实际交易请自行协商并注意安全" style="border-radius:12px;"></textarea>
+</div>
+<div style="background:rgba(255,204,213,0.15);border-radius:12px;padding:12px 16px;font-size:0.78rem;color:#999;margin-bottom:12px;">
+⚠️ <strong>免责声明：</strong>本平台仅提供信息展示，下单后买卖双方请自行协商交易方式。平台不参与实际交易过程，不承担交易风险。
+</div>
+<div class="d-flex gap-2">
+<button type="button" class="btn btn-light flex-fill" data-bs-dismiss="modal" style="border-radius:20px;">取消</button>
+<button type="submit" class="btn flex-fill" style="border-radius:20px;background:var(--pink-dark);color:white;font-weight:700;">✅ 确认下单</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+function openBuyModal(pid, name, price) {
+    if (guestGuard('购买')) {
+        return;
+    }
+    document.getElementById('buyProductId').value = pid;
+    document.getElementById('buyProductName').textContent = name;
+    document.getElementById('buyProductPrice').textContent = price;
+    new bootstrap.Modal(document.getElementById('buyModal')).show();
+}
+
+function closeDetailModal() {
+    var detailModal = bootstrap.Modal.getInstance(document.getElementById('detailModal'));
+    if (detailModal) detailModal.hide();
+}
+
+// ===== 加载更多 =====
+(function () {
+    const btn = document.getElementById('loadMoreBtn');
+    if (!btn) return;
+
+    btn.addEventListener('click', function () {
+        const nextPage = parseInt(btn.dataset.page, 10) + 1;
+        const params = new URLSearchParams(location.search);
+        params.set('page', nextPage);
+        params.set('ajax', '1');
+
+        btn.disabled = true;
+        btn.textContent = '加载中...';
+
+        fetch('/?' + params.toString())
+            .then(r => {
+                if (!r.ok) throw new Error('加载失败');
+                return r.json();
+            })
+            .then(data => {
+                ['sell', 'buy', 'sold'].forEach(kind => {
+                    const html = (data[kind] || '').trim();
+                    if (!html) return;
+                    const grid = document.getElementById('tab-' + kind);
+                    const empty = grid.querySelector('.empty-state');
+                    if (empty) empty.remove();
+                    const tmp = document.createElement('div');
+                    tmp.innerHTML = html;
+                    while (tmp.firstElementChild) grid.appendChild(tmp.firstElementChild);
+                });
+
+                if (data.has_more) {
+                    btn.dataset.page = nextPage;
+                    btn.disabled = false;
+                    btn.textContent = '加载更多';
+                } else {
+                    document.getElementById('loadMoreWrap').innerHTML = '<span class="no-more-text">没有更多了</span>';
+                }
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.textContent = '加载更多';
+                alert('加载失败，请稍后重试');
+            });
+    });
+})();
+</script>
+
+</body>
+
+</html>

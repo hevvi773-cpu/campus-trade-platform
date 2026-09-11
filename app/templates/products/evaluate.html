@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+<html>
+
+
+
+
+
+
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>评价商品</title>
+
+
+
+
+
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+
+
+
+
+
+<style>body{background:linear-gradient(135deg,#aee4ff 0%,#ffccd5 50%,#aee4ff 100%);min-height:100vh;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;}.container{max-width:600px;margin:40px auto;}</style>
+
+
+
+
+
+
+</head>
+
+
+
+
+
+
+<body>
+
+
+
+
+
+
+<div class="container"><div class="card"><div class="card-body p-4">
+
+
+
+
+
+
+    <h4>⭐ 评价商品</h4>
+
+
+
+
+
+
+    <p>商品：{{ product[0] if product else '' }}</p>
+
+
+
+
+
+
+    <p>卖家：{{ product[1] if product else '' }}</p>
+
+
+
+
+
+
+    {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+
+
+
+
+
+
+    <form method="POST">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+
+
+
+
+
+
+        <div class="mb-3"><label class="form-label">评分</label>
+
+
+
+
+
+
+            <select class="form-control" name="rating" required>
+
+
+
+
+
+
+                <option value="5">⭐⭐⭐⭐⭐ 非常满意</option>
+
+
+
+
+
+
+                <option value="4">⭐⭐⭐⭐ 满意</option>
+
+
+
+
+
+
+                <option value="3">⭐⭐⭐ 一般</option>
+
+
+
+
+
+
+                <option value="2">⭐⭐ 不满意</option>
+
+
+
+
+
+
+                <option value="1">⭐ 非常不满意</option>
+
+
+
+
+
+
+            </select>
+
+
+
+
+
+
+        </div>
+
+
+
+
+
+
+        <div class="mb-3"><label class="form-label">评价内容</label><textarea class="form-control" name="content" rows="3"></textarea></div>
+
+
+
+
+
+
+        <button type="submit" class="btn btn-primary w-100">提交评价</button>
+
+
+
+
+
+
+        <a href="/" class="btn btn-secondary w-100 mt-2">返回首页</a>
+
+
+
+
+
+
+    </form>
+
+
+
+
+
+
+</div></div></div>
+
+
+
+
+
+
+</body>
+
+
+
+
+
+
+</html>
+
+
+
+
+

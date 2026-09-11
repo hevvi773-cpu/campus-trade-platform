@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+
+<html>
+
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>个人中心</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+body{background:linear-gradient(135deg,#aee4ff 0%,#ffccd5 50%,#aee4ff 100%);min-height:100vh;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;}.container{max-width:1200px;margin:20px auto;}
+
+.stat-card{background:white;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.06);text-align:center;height:100%;}
+
+.stat-card h3{margin:0;font-weight:700;}
+
+/* 统一图表卡片：相同高度、均匀分布 */
+.chart-box{background:white;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.06);height:340px;display:flex;flex-direction:column;}
+
+.chart-box .chart-canvas-wrap{position:relative;flex:1;min-height:0;}
+
+
+
+
+
+
+.user-identity{display:flex;gap:14px;margin-top:8px;flex-wrap:wrap;}
+.user-identity .identity-item{background:rgba(255,255,255,0.75);border-radius:12px;padding:6px 14px;font-size:0.85rem;color:#444;}
+
+.status-badge{padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;}
+.status-badge.pending{background:#fff3e0;color:#fd7e14;}
+.status-badge.approved{background:#e8f5e9;color:#198754;}
+.status-badge.rejected{background:#fce4ec;color:#dc3545;}
+
+.my-products-panel{background:white;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+
+@media(max-width:767px){
+    .chart-box{height:300px;}
+    .container{margin:10px auto;padding:0 8px;}
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+
+        <h2>👤 个人中心 - {{ user_info.nickname }}</h2>
+        <div class="user-identity">
+            <span class="identity-item">用户名：{{ user_info.username }}</span>
+            <span class="identity-item">昵称：{{ user_info.nickname or '未设置' }}</span>
+        </div>
+
+        <a href="/" class="btn btn-secondary">← 返回首页</a>
+
+    </div>
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-6 col-md-3"><div class="stat-card"><small>卖出总单数</small><h3>{{ stats.sold_count }}</h3></div></div>
+
+        <div class="col-6 col-md-3"><div class="stat-card"><small>卖出总金额</small><h3>¥{{ stats.sold_total }}</h3></div></div>
+
+        <div class="col-6 col-md-3"><div class="stat-card"><small>买入总单数</small><h3>{{ stats.bought_count }}</h3></div></div>
+
+        <div class="col-6 col-md-3"><div class="stat-card"><small>买入总金额</small><h3>¥{{ stats.bought_total }}</h3></div></div>
+
+    </div>
+
+    <!-- 统一尺寸的三张图：相同高度、均匀分布 -->
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-6"><div class="chart-box"><div class="chart-canvas-wrap"><canvas id="monthlyChart"></canvas></div></div></div>
+
+        <div class="col-md-6"><div class="chart-box"><div class="chart-canvas-wrap"><canvas id="ratingChart"></canvas></div></div></div>
+
+    </div>
+
+    <!-- 我发布的商品 -->
+
+    <h5 class="mt-4">🗂️ 我发布的商品</h5>
+
+    <div class="my-products-panel mb-4">
+
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <label for="myProdFilter" class="mb-0" style="font-weight:600;color:#555;">状态筛选：</label>
+            <select id="myProdFilter" class="form-select form-select-sm" style="width:auto;">
+                <option value="">全部</option>
+                <option value="pending">待审核</option>
+                <option value="approved">已上架</option>
+                <option value="rejected">已驳回</option>
+            </select>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-striped align-middle" id="myProductsTable">
+                <thead><tr><th>商品名称</th><th>价格</th><th>状态</th><th>详情</th><th>删除</th></tr></thead>
+                <tbody>
+                {% for p in my_products %}
+                <tr data-status="{{ p.status }}">
+                    <td>
+                        {{ p.name }}
+                        {% if p.sold_status == 'sold' %}<span class="badge bg-secondary ms-1">已售出</span>{% endif %}
+                    </td>
+                    <td>¥{{ p.price }}</td>
+                    <td><span class="status-badge {{ p.status }}">{{ p.status_cn }}</span></td>
+                    <td><button class="btn btn-info btn-sm" onclick="showMyProduct({{ p.id }})">详情</button></td>
+                    <td>
+                        <form method="POST" action="{{ url_for('delete', pid=p.id) }}" class="d-inline" onsubmit="return confirm('确定删除该商品？删除后不可恢复。')">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="next" value="/profile">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">删除</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not my_products %}<tr><td colspan="5" class="text-center text-muted">还没有发布过商品</td></tr>{% endif %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <h5 class="mt-4">📋 我发出的评价</h5>
+
+    <div class="table-responsive"><table class="table table-striped">
+
+        <thead><tr><th>商品</th><th>卖家</th><th>评分</th><th>内容</th><th>时间</th></tr></thead>
+
+        <tbody>{% for e in sent_evals %}<tr><td>{{ e.product_name }}</td><td>{{ e.to_user }}</td><td>{{ e.rating }}⭐</td><td>{{ e.content }}</td><td>{{ e.created_at }}</td></tr>{% endfor %}</tbody>
+
+    </table></div>
+
+    <h5 class="mt-4">📋 我收到的评价</h5>
+
+    <div class="table-responsive"><table class="table table-striped">
+
+        <thead><tr><th>商品</th><th>评价人</th><th>评分</th><th>内容</th><th>时间</th></tr></thead>
+
+        <tbody>{% for e in received_evals %}<tr><td>{{ e.product_name }}</td><td>{{ e.from_user }}</td><td>{{ e.rating }}⭐</td><td>{{ e.content }}</td><td>{{ e.created_at }}</td></tr>{% endfor %}</tbody>
+
+    </table></div>
+
+<h5 class="mt-4">📦 我卖出的商品</h5>
+<div class="table-responsive"><table class="table table-striped">
+    <thead><tr><th>名称</th><th>价格</th><th>售出时间</th><th>操作</th></tr></thead>
+    <tbody>
+    {% for p in sold_products %}
+    <tr>
+        <td>{{ p.name }}</td>
+        <td>¥{{ p.price }}</td>
+        <td>{{ p.sold_time }}</td>
+        <td>
+            {% if p.order_id %}
+                {% if p.order_status == 'pending' %}
+                        <form method="POST" action="{{ url_for('orders.confirm_order', order_id=p.order_id) }}" class="d-inline" onsubmit="return confirm('确认交易？')">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-success btn-sm">确认交易</button>
+                    </form>
+                {% elif p.order_status == 'confirmed' %}
+                    <span class="badge bg-success">已确认</span>
+                {% else %}
+                    <span class="badge bg-secondary">-</span>
+                {% endif %}
+            {% else %}
+                <span class="badge bg-secondary">无订单</span>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table></div>
+
+</div>
+
+<!-- 我的商品详情弹窗 -->
+<div class="modal fade" id="myProductModal" tabindex="-1">
+    <div class="modal-dialog modal-lg"><div class="modal-content" style="border-radius:16px;">
+        <div class="modal-header"><h5 style="color:#5b9ecf;">📄 商品详情</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body" id="myProductContent"><div class="text-center py-4"><div class="spinner-border" style="color:#e8a0ac;"></div></div></div>
+    </div></div>
+</div>
+
+<script src="/static/js/product_detail.js"></script>
+
+<script>
+
+const chartBaseOptions = {responsive:true, maintainAspectRatio:false};
+
+new Chart(document.getElementById('monthlyChart'), {
+
+    type:'bar',
+
+    data:{
+
+        labels:{{ monthly_labels|safe }},
+
+        datasets:[
+
+            {label:'卖出', data:{{ monthly_sold|safe }}, backgroundColor:'rgba(54,162,235,0.6)'},
+
+            {label:'买入', data:{{ monthly_bought|safe }}, backgroundColor:'rgba(255,99,132,0.6)'}
+
+        ]
+
+    },
+
+    options:Object.assign({}, chartBaseOptions, {plugins:{title:{display:true,text:'每月交易数量'}}})
+
+});
+
+new Chart(document.getElementById('ratingChart'), {
+
+    type:'pie',
+
+    data:{
+
+        labels:['1星','2星','3星','4星','5星'],
+
+        datasets:[{data:{{ rating_dist|safe }}, backgroundColor:['#dc3545','#fd7e14','#ffc107','#20c997','#0d6efd']}]
+
+    },
+
+    options:Object.assign({}, chartBaseOptions, {plugins:{title:{display:true,text:'收到的评价星级分布'}}})
+
+});
+
+// 我发布的商品：状态筛选
+document.getElementById('myProdFilter').addEventListener('change', function () {
+    const val = this.value;
+    document.querySelectorAll('#myProductsTable tbody tr[data-status]').forEach(tr => {
+        tr.style.display = (!val || tr.dataset.status === val) ? '' : 'none';
+    });
+});
+
+// 我发布的商品：详情弹窗（渲染逻辑在 /static/js/product_detail.js，与 admin 共用）
+function showMyProduct(pid) {
+    showProductDetail(pid, 'myProductContent', 'myProductModal');
+}
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>

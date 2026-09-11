@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>管理后台</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body { font-family: 'Segoe UI', sans-serif; background:linear-gradient(135deg,#aee4ff 0%,#ffccd5 50%,#aee4ff 100%);min-height:100vh; }
+
+        .sidebar {
+
+            position: fixed; top:0; left:0; width:240px; height:100vh;
+
+            background: #1a1a2e; color: white; overflow-y: auto; z-index:1000;
+
+            padding-top:20px;
+
+        }
+
+        .sidebar-brand { padding:0 24px 30px; font-size:20px; font-weight:700; border-bottom:1px solid rgba(255,255,255,0.1); }
+
+        .sidebar-brand i { margin-right:10px; color:#4fc3f7; }
+
+        .sidebar-menu { padding:15px 0; }
+
+        .menu-item {
+
+            display:flex; align-items:center; padding:12px 24px;
+
+            color:rgba(255,255,255,0.7); text-decoration:none; transition:0.3s;
+
+            border-left:3px solid transparent; cursor:pointer;
+
+        }
+
+        .menu-item:hover, .menu-item.active { background:rgba(255,255,255,0.08); color:white; border-left-color:#4fc3f7; }
+
+        .menu-item i { width:24px; margin-right:12px; font-size:18px; }
+
+        .menu-item .badge { margin-left:auto; background:#dc3545; }
+
+        .main-content { margin-left:240px; padding:24px 30px; min-height:100vh; }
+
+        .top-bar {
+
+            background:white; border-radius:12px; padding:16px 24px; margin-bottom:24px;
+
+            display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 8px rgba(0,0,0,0.06);
+
+        }
+
+        .top-bar h4 { margin:0; font-weight:600; }
+
+        .stat-cards { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:20px; margin-bottom:24px; align-items:stretch; }
+
+        .stat-card {
+
+            background:white; border-radius:12px; padding:16px 20px;
+
+            box-shadow:0 2px 8px rgba(0,0,0,0.06);
+
+            display:flex; justify-content:space-between; align-items:center;
+
+            height:100%; min-height:92px;
+
+        }
+
+        .stat-card .info h6 { color:#6c757d; font-size:13px; margin:0; }
+
+        .stat-card .info h3 { margin:4px 0 0; font-weight:700; }
+
+        .stat-card .icon { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; }
+
+        .icon.blue { background:#e3f2fd; color:#0d6efd; }
+
+        .icon.orange { background:#fff3e0; color:#fd7e14; }
+
+        .icon.green { background:#e8f5e9; color:#198754; }
+
+        .icon.gray { background:#f5f5f5; color:#6c757d; }
+
+        .icon.purple { background:#f3e5f5; color:#9c27b0; }
+
+        .card-panel { background:white; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.06); overflow:hidden; margin-bottom:24px; }
+
+        .card-header-custom { padding:16px 24px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
+
+        .card-header-custom h5 { margin:0; font-weight:600; }
+
+        .card-body-custom { padding:20px 24px; overflow-x:auto; }
+
+        .table th { background:#f8f9fa; font-weight:600; font-size:13px; }
+
+        .status-badge { padding:3px 12px; border-radius:20px; font-size:12px; font-weight:600; }
+
+        .status-badge.pending { background:#fff3e0; color:#fd7e14; }
+
+        .status-badge.approved { background:#e8f5e9; color:#198754; }
+
+        .status-badge.rejected { background:#fce4ec; color:#dc3545; }
+
+        .type-badge { padding:3px 12px; border-radius:20px; font-size:12px; font-weight:600; }
+
+        .type-badge.sell { background:#e3f2fd; color:#0d6efd; }
+
+        .type-badge.buy { background:#fff3e0; color:#fd7e14; }
+
+        .product-img-thumb { width:45px; height:45px; object-fit:cover; border-radius:6px; border:1px solid #eee; }
+
+        .search-box { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
+        .search-box input, .search-box select { border-radius:8px; border:1px solid #dee2e6; padding:6px 14px; }
+
+        /* 商品状态 Tab 筛选 */
+        .status-tabs { display:flex; gap:8px; flex-wrap:wrap; padding:12px 24px 0; }
+        .status-tab { padding:7px 18px; border-radius:20px; font-size:13px; font-weight:600; text-decoration:none; color:#6c757d; background:#f1f3f5; transition:all 0.2s; }
+        .status-tab:hover { background:#e2e6ea; color:#444; }
+        .status-tab.active { background:#0d6efd; color:#fff; }
+        .status-tab .tab-count { background:rgba(0,0,0,0.1); border-radius:10px; padding:1px 8px; font-size:11px; margin-left:4px; }
+        .status-tab.active .tab-count { background:rgba(255,255,255,0.25); }
+
+        .pagination { margin-top:15px; }
+
+        .chart-container { background:white; border-radius:12px; padding:20px; margin-bottom:24px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+
+        .menu-divider { height:1px; background:rgba(255,255,255,0.1); margin:15px 24px; }
+
+        @media (max-width:768px) {
+
+            .sidebar { width:60px; }
+
+            .sidebar-brand span, .menu-item span { display:none; }
+
+            .menu-item { padding:12px 18px; justify-content:center; }
+
+            .menu-item i { margin:0; }
+
+            .main-content { margin-left:60px; }
+
+            .stat-cards { grid-template-columns:1fr 1fr; }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="sidebar">
+
+    <div class="sidebar-brand"><i class="bi bi-box-seam"></i><span>二手交易后台</span></div>
+
+    <div class="sidebar-menu">
+
+        <a href="#" class="menu-item active" data-tab="dashboard"><i class="bi bi-speedometer2"></i><span>首页</span></a>
+
+        <a href="#" class="menu-item" data-tab="products"><i class="bi bi-grid"></i><span>商品管理</span><span class="badge">{{ pending_count }}</span></a>
+
+        <a href="#" class="menu-item" data-tab="users"><i class="bi bi-people"></i><span>用户管理</span></a>
+
+        <a href="#" class="menu-item" data-tab="feedback"><i class="bi bi-chat-dots"></i><span>反馈管理</span></a>
+
+        <div class="menu-divider"></div>
+
+        <form method="POST" action="{{ url_for('logout') }}">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="menu-item" style="border:0;border-left:4px solid transparent;background:transparent;width:100%;"><i class="bi bi-box-arrow-right"></i><span>退出登录</span></button>
+        </form>
+
+    </div>
+
+</div>
+
+<div class="main-content">
+
+    <div class="top-bar">
+
+        <h4 id="pageTitle">📊 数据概览</h4>
+
+        <div><span class="me-3">管理员：{{ current_user }}</span></div>
+
+    </div>
+
+    <!-- 统计卡片 -->
+
+    <div class="stat-cards" id="statCards">
+
+        <div class="stat-card"><div class="info"><h6>总商品</h6><h3>{{ total_count }}</h3></div><div class="icon blue"><i class="bi bi-box"></i></div></div>
+
+        <div class="stat-card"><div class="info"><h6>待审核</h6><h3>{{ pending_count }}</h3></div><div class="icon orange"><i class="bi bi-clock-history"></i></div></div>
+
+        <div class="stat-card"><div class="info"><h6>已上架</h6><h3>{{ approved_count }}</h3></div><div class="icon green"><i class="bi bi-check-circle"></i></div></div>
+
+        <div class="stat-card"><div class="info"><h6>已售出</h6><h3>{{ sold_count }}</h3></div><div class="icon gray"><i class="bi bi-check2-all"></i></div></div>
+
+        <div class="stat-card"><div class="info"><h6>总用户</h6><h3>{{ user_count }}</h3></div><div class="icon purple"><i class="bi bi-people"></i></div></div>
+
+        <div class="stat-card"><div class="info"><h6>今日新增</h6><h3>{{ today_new }}</h3></div><div class="icon green"><i class="bi bi-plus-circle"></i></div></div>
+
+    </div>
+
+    <!-- 图表区域 -->
+
+    <div id="chartArea">
+
+        <div class="row g-3 mb-4">
+
+            <div class="col-md-6"><div class="chart-container"><canvas id="statusChart"></canvas></div></div>
+
+            <div class="col-md-6"><div class="chart-container"><canvas id="trendChart"></canvas></div></div>
+
+        </div>
+
+        <div class="row g-3 mb-4">
+
+            <div class="col-md-6"><div class="chart-container"><canvas id="amountChart"></canvas></div></div>
+
+            <div class="col-md-6"><div class="chart-container"><canvas id="userRegChart"></canvas></div></div>
+
+        </div>
+
+        <div class="row g-3 mb-4">
+
+            <div class="col-md-6">
+
+                <div class="card-panel">
+
+                    <div class="card-header-custom"><h5>👤 用户角色分布</h5></div>
+
+                    <div class="card-body-custom"><canvas id="roleChart" height="150"></canvas></div>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-6">
+
+                <div class="card-panel">
+
+                    <div class="card-header-custom"><h5>🏆 交易额排行 Top 5</h5></div>
+
+                    <div class="card-body-custom">
+
+                        <table class="table table-sm">
+
+                            <thead><tr><th>#</th><th>用户</th><th>卖出总额</th><th>卖出单数</th></tr></thead>
+
+                            <tbody>
+
+                            {% for u in top_users %}
+
+                            <tr><td>{{ loop.index }}</td><td>{{ u.seller }}</td><td>¥{{ u.total_amount }}</td><td>{{ u.total_count }}</td></tr>
+
+                            {% endfor %}
+
+                            {% if not top_users %}<tr><td colspan="4" class="text-muted">暂无数据</td></tr>{% endif %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="card-panel">
+
+            <div class="card-header-custom"><h5>📈 近7天用户活跃度</h5></div>
+
+            <div class="card-body-custom">
+
+                <table class="table table-sm">
+
+                    <thead><tr><th>日期</th><th>新注册</th><th>新发布</th><th>新评价</th></tr></thead>
+
+                    <tbody>
+
+                    {% for day in active_days %}
+
+                    <tr><td>{{ day.date }}</td><td>{{ day.reg }}</td><td>{{ day.pub }}</td><td>{{ day.eval }}</td></tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- 商品管理面板 -->
+
+    <div class="card-panel" id="productsPanel" style="display:none;">
+
+        <div class="card-header-custom">
+
+            <h5>📋 商品列表</h5>
+
+            <div class="search-box">
+
+                <input type="text" id="searchInput" placeholder="🔍 商品名称" value="{{ q }}">
+
+                <button class="btn btn-primary btn-sm" onclick="searchProducts()">搜索</button>
+
+                <button class="btn btn-secondary btn-sm" onclick="resetSearch()">重置</button>
+
+                <button type="button" class="btn btn-success btn-sm ms-2" onclick='postAction({{ url_for('approve_all')|tojson }}, "确定一键通过所有待审核商品？")'>✅ 一键通过</button>
+
+            </div>
+
+        </div>
+
+        <!-- 状态 Tab 筛选 -->
+        <div class="status-tabs">
+            <a class="status-tab {% if not status_filter %}active{% endif %}" href="?{% if q %}q={{ q|urlencode }}{% endif %}">全部<span class="tab-count">{{ total_count }}</span></a>
+            <a class="status-tab {% if status_filter == 'pending' %}active{% endif %}" href="?status=pending{% if q %}&q={{ q|urlencode }}{% endif %}">待审核<span class="tab-count">{{ pending_count }}</span></a>
+            <a class="status-tab {% if status_filter == 'approved' %}active{% endif %}" href="?status=approved{% if q %}&q={{ q|urlencode }}{% endif %}">已上架<span class="tab-count">{{ approved_count }}</span></a>
+            <a class="status-tab {% if status_filter == 'rejected' %}active{% endif %}" href="?status=rejected{% if q %}&q={{ q|urlencode }}{% endif %}">已驳回<span class="tab-count">{{ total_count - pending_count - approved_count }}</span></a>
+        </div>
+
+        <div class="card-body-custom">
+
+            <table class="table table-striped table-hover" id="productTable">
+
+                <thead>
+
+                    <tr>
+
+                        <th>图片</th><th>类型</th><th>价格</th><th>商品名称</th><th>描述</th>
+
+                        <th>发布人</th><th>电话</th><th>微信</th><th>地址</th>
+
+                        <th>状态</th><th>推荐首页</th><th>出售状态</th><th>操作</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                {% for p in products %}
+
+                <tr>
+
+                    <td>{% if p.desc_image %}<img src="/{{ p.desc_image }}" class="product-img-thumb">{% else %}-{% endif %}</td>
+
+                    <td><span class="type-badge {% if p.type==1 %}sell{% else %}buy{% endif %}">{{ p.type_cn }}</span></td>
+
+                    <td>¥{{ p.price }}</td>
+
+                    <td><strong>{{ p.name }}</strong></td>
+
+                    <td>{{ p.description|truncate(20) }}</td>
+
+                    <td>{{ p.seller }}</td>
+
+                    <td>{{ p.contact or '-' }}</td>
+
+                    <td>{% if p.contact_image %}<img src="/{{ p.contact_image }}" style="max-width:40px;max-height:30px;">{% else %}-{% endif %}</td>
+
+                    <td>{{ p.seller }}</td>
+
+                    <td><span class="status-badge {{ p.status }}">{{ p.status_cn }}</span></td>
+
+                    <td>{% if p.status=='approved' %}✅{% else %}❌{% endif %}</td>
+
+                    <td>{{ p.sold_status_cn }}</td>
+
+                    <td>
+
+                        <button class="btn btn-info btn-sm" onclick="showDetail({{ p.id }})"><i class="bi bi-eye"></i></button>
+
+                        {% if p.status == 'pending' %}
+
+                            <button type="button" class="btn btn-success btn-sm" onclick='postAction({{ url_for('approve', pid=p.id)|tojson }}, "通过审核？")'><i class="bi bi-check2"></i></button>
+
+                            <button type="button" class="btn btn-warning btn-sm" onclick='postAction({{ url_for('reject', pid=p.id)|tojson }}, "驳回？")'><i class="bi bi-x"></i></button>
+
+                        {% endif %}
+
+                        <button type="button" class="btn btn-danger btn-sm" onclick='postAction({{ url_for('delete', pid=p.id)|tojson }}, "确定删除？")'><i class="bi bi-trash"></i></button>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+            {% if products|length == 0 %}<p class="text-center text-muted">暂无商品</p>{% endif %}
+
+            {% if total_pages > 1 %}
+
+            <nav><ul class="pagination justify-content-center">
+
+                {% for i in range(1, total_pages+1) %}
+
+                    <li class="page-item {% if i == page %}active{% endif %}"><a class="page-link" href="?q={{ q|urlencode }}&status={{ status_filter }}&page={{ i }}">{{ i }}</a></li>
+
+                {% endfor %}
+
+            </ul></nav>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    <!-- 用户管理面板 -->
+
+    <div class="card-panel" id="usersPanel" style="display:none;">
+
+        <div class="card-header-custom"><h5>👥 用户管理</h5>
+
+            <div><button type="button" class="btn btn-warning btn-sm" onclick='postAction({{ url_for('ban_all')|tojson }}, "确定一键禁言所有未禁言用户？")'>🔇 一键禁言</button> <button type="button" class="btn btn-success btn-sm" onclick='postAction({{ url_for('unban_all')|tojson }}, "确定一键解除所有禁言？")'>🔊 一键解除</button></div></div>
+
+        <div class="card-body-custom">
+
+            <table class="table table-striped">
+
+                <thead><tr><th>ID</th><th>用户名</th><th>昵称</th><th>学号</th><th>角色</th><th>状态</th><th>操作</th></tr></thead>
+
+                <tbody>
+
+                {% for u in users %}
+
+                <tr>
+
+                    <td>{{ u[0] }}</td><td>{{ u[1] }}</td><td>{{ u[2] }}</td><td>{{ u[5] or '-' }}</td>
+
+                    <td><span class="badge {% if u[3]=='admin' %}bg-danger{% else %}bg-secondary{% endif %}">{{ '管理员' if u[3]=='admin' else '学生' }}</span></td>
+
+                    <td>{% if u[4] %}<span class="badge bg-danger">禁言至 {{ u[4] }}</span>{% else %}<span class="badge bg-success">正常</span>{% endif %}</td>
+
+                    <td>
+
+                        {% if u[3] != 'admin' %}
+
+                            {% if u[4] %}<button type="button" class="btn btn-success btn-sm" onclick='postAction({{ url_for('unban_user', username=u[1])|tojson }}, "解除禁言？")'>解除</button>
+
+                            {% else %}<button type="button" class="btn btn-warning btn-sm" onclick='postAction({{ url_for('ban_user', username=u[1])|tojson }}, "禁言7天？")'>禁言</button>{% endif %}
+
+                            <button type="button" class="btn btn-danger btn-sm" onclick='postAction({{ url_for('delete_user', username=u[1])|tojson }}, "注销用户？")'>注销</button>
+
+                        {% else %}<span class="text-muted">—</span>{% endif %}
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <!-- 反馈管理面板（含图片列） -->
+
+    <div class="card-panel" id="feedbackPanel" style="display:none;">
+
+        <div class="card-header-custom"><h5>📝 用户反馈</h5></div>
+
+        <div class="card-body-custom">
+
+            <table class="table table-striped">
+
+                <thead><tr><th>ID</th><th>用户</th><th>标题</th><th>内容</th><th>图片</th><th>状态</th><th>管理员回复</th><th>提交时间</th><th>操作</th></tr></thead>
+
+                <tbody>
+
+                {% for f in feedbacks %}
+
+                <tr>
+
+                    <td>{{ f.id }}</td>
+
+                    <td>{{ f.username }}</td>
+
+                    <td>{{ f.title }}</td>
+
+                    <td>{{ f.content }}</td>
+
+                    <td>{% if f.image %}<img src="/{{ f.image }}" style="max-width:60px;max-height:60px;">{% else %}-{% endif %}</td>
+
+                    <td><span class="badge {% if f.status == 'pending' %}bg-warning{% else %}bg-success{% endif %}">{{ '待处理' if f.status == 'pending' else '已处理' }}</span></td>
+
+                    <td>{{ f.reply or '-' }}</td>
+
+                    <td>{{ f.created_at }}</td>
+
+                    <td>
+
+                        {% if f.status == 'pending' %}
+
+                            <button class="btn btn-primary btn-sm" onclick="openReplyModal({{ f.id }})">回复</button>
+
+                        {% else %}
+
+                            <span class="text-muted">已回复</span>
+
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- 回复模态框 -->
+
+<div class="modal fade" id="replyModal" tabindex="-1">
+
+    <div class="modal-dialog"><div class="modal-content">
+
+        <div class="modal-header"><h5>回复反馈</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+
+        <form method="POST" id="replyForm">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+
+            <div class="modal-body">
+
+                <input type="hidden" name="fid" id="replyFid">
+
+                <div class="mb-3"><label class="form-label">回复内容</label><textarea class="form-control" name="reply" rows="3" required></textarea></div>
+
+            </div>
+
+            <div class="modal-footer"><button type="submit" class="btn btn-primary">提交回复</button></div>
+
+        </form>
+
+    </div></div>
+
+</div>
+
+<!-- 详情弹窗 -->
+
+<div class="modal fade" id="detailModal" tabindex="-1">
+
+    <div class="modal-dialog modal-lg"><div class="modal-content">
+
+        <div class="modal-header"><h5>📄 商品详情</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+
+        <div class="modal-body" id="detailContent"><div class="text-center py-4"><div class="spinner-border"></div></div></div>
+
+    </div></div>
+
+</div>
+
+<script src="/static/js/product_detail.js"></script>
+
+<script>
+
+// 菜单切换
+
+document.querySelectorAll('.menu-item[data-tab]').forEach(item => {
+
+    item.addEventListener('click', function(e) {
+
+        e.preventDefault();
+
+        document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+
+        this.classList.add('active');
+
+        const tab = this.dataset.tab;
+
+        document.getElementById('productsPanel').style.display = (tab === 'products') ? 'block' : 'none';
+
+        document.getElementById('usersPanel').style.display = (tab === 'users') ? 'block' : 'none';
+
+        document.getElementById('feedbackPanel').style.display = (tab === 'feedback') ? 'block' : 'none';
+
+        document.getElementById('statCards').style.display = (tab === 'dashboard') ? 'grid' : 'none';
+
+        document.getElementById('chartArea').style.display = (tab === 'dashboard') ? 'block' : 'none';
+
+        document.getElementById('pageTitle').textContent = 
+
+            tab === 'dashboard' ? '📊 数据概览' :
+
+            tab === 'products' ? '📋 商品管理' :
+
+            tab === 'users' ? '👥 用户管理' :
+
+            tab === 'feedback' ? '📝 反馈管理' : '管理后台';
+
+        sessionStorage.setItem('adminTab', tab);
+
+    });
+
+});
+
+// 恢复上次Tab
+
+(function() {
+
+    var savedTab = sessionStorage.getItem('adminTab') || 'dashboard';
+
+    var item = document.querySelector('.menu-item[data-tab="' + savedTab + '"]');
+
+    if (item) {
+
+        var items = document.querySelectorAll('.menu-item');
+
+        for (var i = 0; i < items.length; i++) items[i].classList.remove('active');
+
+        item.classList.add('active');
+
+        document.getElementById('productsPanel').style.display = (savedTab === 'products') ? 'block' : 'none';
+
+        document.getElementById('usersPanel').style.display = (savedTab === 'users') ? 'block' : 'none';
+
+        document.getElementById('feedbackPanel').style.display = (savedTab === 'feedback') ? 'block' : 'none';
+
+        document.getElementById('statCards').style.display = (savedTab === 'dashboard') ? 'grid' : 'none';
+
+        document.getElementById('chartArea').style.display = (savedTab === 'dashboard') ? 'block' : 'none';
+
+        document.getElementById('pageTitle').textContent = 
+
+            savedTab === 'dashboard' ? '📊 数据概览' :
+
+            savedTab === 'products' ? '📋 商品管理' :
+
+            savedTab === 'users' ? '👥 用户管理' :
+
+            savedTab === 'feedback' ? '📝 反馈管理' : '管理后台';
+
+    }
+
+})();
+
+function searchProducts() {
+
+    const q = document.getElementById('searchInput').value.trim();
+
+    window.location.href = '/admin?q=' + encodeURIComponent(q) + '&status={{ status_filter }}&page=1';
+
+}
+
+function resetSearch() {
+
+    document.getElementById('searchInput').value = '';
+
+    window.location.href = '/admin';
+
+}
+
+// 详情渲染逻辑已抽到 /static/js/product_detail.js（与 profile 共用）
+function showDetail(pid) {
+
+    showProductDetail(pid, 'detailContent', 'detailModal');
+
+}
+
+const csrfToken = {{ csrf_token()|tojson }};
+const feedbackReplyUrlTemplate = {{ url_for('feedback.reply_feedback', fid=0)|tojson }};
+
+async function postAction(url, confirmMessage) {
+    if (!confirm(confirmMessage)) return;
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {'X-CSRF-Token': csrfToken}
+        });
+        if (!response.ok) {
+            throw new Error(await response.text());
+        }
+        window.location.reload();
+    } catch (error) {
+        alert(error.message || '操作失败，请刷新页面后重试');
+    }
+}
+
+function openReplyModal(fid) {
+
+    document.getElementById('replyFid').value = fid;
+
+    document.getElementById('replyForm').action = feedbackReplyUrlTemplate.replace(/0$/, String(fid));
+
+    new bootstrap.Modal(document.getElementById('replyModal')).show();
+
+}
+
+// 图表初始化
+
+new Chart(document.getElementById('statusChart'), {
+
+    type:'doughnut',
+
+    data:{labels:['待审核','已上架','已驳回'], datasets:[{data:[{{ pending_count }}, {{ approved_count }}, {{ total_count - pending_count - approved_count }}], backgroundColor:['#ffc107','#28a745','#dc3545']}]},
+
+    options:{plugins:{title:{display:true,text:'商品状态分布'}}}
+
+});
+
+new Chart(document.getElementById('trendChart'), {
+
+    type:'bar',
+
+    data:{labels:{{ date_labels|safe }}, datasets:[{label:'每日发布量', data:{{ daily_counts|safe }}, backgroundColor:'#0d6efd'}]},
+
+    options:{plugins:{title:{display:true,text:'近7天发布趋势'}}}
+
+});
+
+new Chart(document.getElementById('amountChart'), {
+
+    type:'line',
+
+    data:{labels:{{ date_labels|safe }}, datasets:[{label:'每日交易额 (元)', data:{{ daily_amounts|safe }}, borderColor:'#198754', fill:false, tension:0.2}]},
+
+    options:{plugins:{title:{display:true,text:'近7天交易额'}}}
+
+});
+
+new Chart(document.getElementById('userRegChart'), {
+
+    type:'line',
+
+    data:{labels:{{ date_labels|safe }}, datasets:[{label:'每日注册量', data:{{ daily_regs|safe }}, borderColor:'#9c27b0', fill:false, tension:0.2}]},
+
+    options:{plugins:{title:{display:true,text:'近7天用户注册趋势'}}}
+
+});
+
+new Chart(document.getElementById('roleChart'), {
+
+    type:'pie',
+
+    data:{labels:['管理员','学生'], datasets:[{data:[{{ admin_count }}, {{ student_count }}], backgroundColor:['#dc3545','#0d6efd']}]},
+
+    options:{plugins:{title:{display:true,text:'用户角色分布'}}}
+
+});
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>
+

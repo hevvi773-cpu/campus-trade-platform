@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+
+<html>
+
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>我的消息</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+
+body{background:linear-gradient(135deg,#aee4ff 0%,#ffccd5 50%,#aee4ff 100%);min-height:100vh;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;}.container{max-width:900px;margin:20px auto;}
+
+.conversation-card{cursor:pointer;transition:0.2s;}
+
+.conversation-card:hover{background:#f8f9fa;}
+
+.source-product{display:inline-block;background:rgba(174,228,255,0.45);color:#2c5f7c;font-size:0.72rem;padding:1px 8px;border-radius:10px;margin-left:6px;vertical-align:middle;}
+.unread-badge{background:#dc3545;color:white;border-radius:50%;padding:2px 8px;font-size:12px;margin-left:10px;}
+
+.message-time{color:#6c757d;font-size:12px;}
+
+</style>
+
+{% include '_badges.html' %}
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <h2>💬 我的消息</h2>
+
+        <div class="d-flex gap-1 align-items-center">
+            {% from '_badges.html' import badge_link %}
+            {{ badge_link(url_for('orders.my_orders'), '📋', '我的订单', badges.order if badges else 0, 'btn btn-secondary btn-sm') }}
+            {{ badge_link(url_for('feedback.feedback_list'), '📝', '反馈', badges.feedback if badges else 0, 'btn btn-secondary btn-sm') }}
+            <a href="{{ url_for('index') }}" class="btn btn-secondary btn-sm">← 返回首页</a>
+        </div>
+
+    </div>
+
+    {% if conversations %}
+
+        <div class="list-group">
+
+        {% for conv in conversations %}
+
+            <a href="{{ url_for('messages.chat_detail', receiver=conv.other_user) }}" class="list-group-item list-group-item-action conversation-card">
+
+                <div class="d-flex justify-content-between align-items-center">
+
+                    <div>
+
+                        <strong>{{ conv.other_nickname or conv.other_user }}</strong>
+                        {% if conv.product_id and conv.product_name %}
+                            <span class="source-product">来自商品：{{ conv.product_name }}</span>
+                        {% endif %}
+
+                        <span class="text-muted ms-2">{{ conv.last_msg|truncate(30) }}</span>
+
+                        {% if conv.unread_count > 0 %}
+
+                            <span class="unread-badge">{{ conv.unread_count }}</span>
+
+                        {% endif %}
+
+                    </div>
+
+                    <span class="message-time">{{ conv.last_time }}</span>
+
+                </div>
+
+            </a>
+
+        {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div class="alert alert-info">暂无消息记录</div>
+
+    {% endif %}
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>
+

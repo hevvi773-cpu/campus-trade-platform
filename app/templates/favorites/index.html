@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的收藏 - 校园二手交易</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: #f5f5f5; padding-bottom: 70px; }
+        .top-nav { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;
+                   padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
+                   position: sticky; top: 0; z-index: 100; }
+        .top-nav a { color: white; text-decoration: none; font-size: 14px; }
+        .top-nav .title { font-size: 18px; font-weight: bold; }
+        .fav-list { padding: 12px; max-width: 600px; margin: 0 auto; }
+        .fav-card { background: white; border-radius: 12px; padding: 14px; margin-bottom: 10px;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.08); position: relative; }
+        .fav-card h3 { font-size: 16px; margin-bottom: 6px; padding-right: 32px; }
+        .fav-card .price { color: #e74c3c; font-weight: bold; font-size: 18px; margin-bottom: 4px; }
+        .fav-card .meta { color: #666; font-size: 12px; display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+        .fav-card .seller { color: #764ba2; }
+        .type-tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+        .type-tag.sell { background: #e3f2fd; color: #0d6efd; }
+        .type-tag.buy { background: #fff3e0; color: #fd7e14; }
+        .unfav-btn { position: absolute; top: 12px; right: 12px; background: none; border: none;
+                     font-size: 20px; cursor: pointer; color: #e74c3c; }
+        .unfav-btn:hover { transform: scale(1.2); }
+        .fav-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .fav-actions .act-btn { display: inline-block; padding: 8px 16px; border-radius: 18px; font-size: 13px;
+                                font-weight: 600; text-decoration: none; border: 1px solid transparent;
+                                cursor: pointer; min-height: 36px; line-height: 1.4; transition: all 0.2s; }
+        .act-btn.detail { border-color: #17a2b8; color: #17a2b8; background: #fff; }
+        .act-btn.detail:hover { background: #17a2b8; color: #fff; }
+        .act-btn.chat { border-color: #667eea; color: #667eea; background: #fff; }
+        .act-btn.chat:hover { background: #667eea; color: #fff; }
+        .act-btn.buy-now { border-color: #e8a0ac; color: #fff; background: #e8a0ac; }
+        .act-btn.buy-now:hover { background: #d4909c; }
+        .empty { text-align: center; padding: 60px 20px; color: #999; }
+        .empty .icon { font-size: 48px; margin-bottom: 10px; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white;
+                      display: flex; border-top: 1px solid #eee; z-index: 100; }
+        .bottom-nav a { flex: 1; text-align: center; padding: 10px 0; color: #666;
+                        text-decoration: none; font-size: 12px; }
+        .bottom-nav a.active { color: #764ba2; }
+        .bottom-nav a .icon { font-size: 20px; display: block; }
+        @media (min-width: 992px) {
+            .fav-actions .act-btn { padding: 9px 20px; font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-nav">
+        <a href="/">← 返回</a>
+        <span class="title">⭐ 我的收藏</span>
+        <span></span>
+    </div>
+
+    <div class="fav-list">
+        {% if favorites %}
+            {% for f in favorites %}
+            <div class="fav-card">
+                <h3>{{ f.name }} <span class="type-tag {% if f.type == 1 %}sell{% else %}buy{% endif %}">{{ '出售' if f.type == 1 else '求购' }}</span></h3>
+                <div class="price">¥{{ "%.2f"|format(f.price) }}</div>
+                <div class="meta">
+                    <span class="seller">{{ f.seller_nickname }}</span>
+                    <span>{{ f.sold_status }}</span>
+                </div>
+                <div class="fav-actions">
+                    <a href="/?p={{ f.id }}" class="act-btn detail">📄 详情</a>
+                    {% if f.seller != current_username %}
+                    <a href="{{ url_for('messages.chat_detail', receiver=f.seller, product_id=f.id) }}" class="act-btn chat">💬 在线沟通</a>
+                    {% if f.sold_status != '已售出' and f.sold_status != 'sold' %}
+                    <a href="/?p={{ f.id }}&buy=1" class="act-btn buy-now">{{ '🛒 立即购买' if f.type == 1 else '🤝 立即出售' }}</a>
+                    {% endif %}
+                    {% endif %}
+                </div>
+                <form method="POST" action="{{ url_for('toggle_favorite', pid=f.id) }}">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="unfav-btn" title="取消收藏">♥</button>
+                </form>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty">
+                <div class="icon">📭</div>
+                <p>还没有收藏任何商品</p>
+                <p><a href="/">去首页逛逛 →</a></p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="bottom-nav">
+        <a href="/"><span class="icon">🏠</span>首页</a>
+        <a href="/publish"><span class="icon">📝</span>发布</a>
+        <a href="/favorites" class="active"><span class="icon">⭐</span>收藏</a>
+        <a href="/profile"><span class="icon">👤</span>我的</a>
+    </div>
+</body>
+</html>

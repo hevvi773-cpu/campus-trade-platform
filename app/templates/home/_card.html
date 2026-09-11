@@ -1,0 +1,78 @@
+{# 单个商品卡片宏：首页三个分组与「加载更多」Ajax 片段共用，保证样式与逻辑一致 #}
+{% macro product_card(p, kind) %}
+<div class="product-card{% if kind == 'sold' %} sold-card{% endif %}">
+
+    {% if kind == 'sell' %}<span class="card-badge sell">出售</span>
+    {% elif kind == 'buy' %}<span class="card-badge buy">求购</span>
+    {% else %}<span class="card-badge sold-badge">已售</span>{% endif %}
+
+    {% set fallback_icon = '📦' if kind == 'sell' else ('🔍' if kind == 'buy' else '✅') %}
+    {% if p.desc_image %}<img src="/{{ p.desc_image }}" class="card-img"{% if kind == 'sold' %} style="filter:grayscale(0.4)"{% endif %} onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="card-noimg" style="display:none">{{ fallback_icon }}</div>
+    {% else %}<div class="card-noimg">{{ fallback_icon }}</div>{% endif %}
+
+    <div class="card-name">{{ p.name }}{% if p.is_own %}<span class="own-tag">我的</span>{% endif %}</div>
+
+    <div class="card-price{% if kind == 'sold' %} sold-price{% endif %}">¥{{ p.price }}</div>
+
+    <div class="card-meta">
+        <span>{{ p.seller }}</span>
+        {% if kind == 'sold' %}
+        <span>{{ p.sold_time[:10] if p.sold_time else '' }}</span>
+        {% else %}
+        <span>{{ p.created_at[:10] if p.created_at else '' }}</span>
+        {% endif %}
+    </div>
+
+    {% if p.tags %}<div class="card-tags">{% for t in p.tags.split(',') if t %}<span class="tag">{{ t }}</span>{% endfor %}</div>{% endif %}
+
+    <div class="card-actions">
+
+        <button class="fav-btn {% if p.id in fav_ids %}faved{% else %}unfav{% endif %}" onclick="return toggleFav({{ p.id }}, this)" title="收藏">{% if p.id in fav_ids %}♥{% else %}♡{% endif %}</button>
+
+        {% if kind in ('sell', 'buy') %}
+            {% set action_icon = '🛒' if kind == 'sell' else '🤝' %}
+            {% set action_label = '立即购买' if kind == 'sell' else '立即出售' %}
+            {% if current_identity == 'student' and session.username != p.seller_username %}
+                {% if ban_until %}
+                    <span class="btn btn-outline-warning btn-sm disabled" style="opacity:0.5;cursor:not-allowed;" title="您当前处于禁言期">{{ action_icon }} {{ action_label }}</span>
+                    <span class="btn btn-outline-primary btn-sm disabled" style="opacity:0.5;cursor:not-allowed;" title="您当前处于禁言期">💬 私信</span>
+                {% else %}
+                    <button class="btn btn-outline-warning btn-sm" onclick='openBuyModal({{ p.id }}, {{ p.name|tojson }}, {{ p.price }})'>{{ action_icon }} {{ action_label }}</button>
+                    <a href="{{ url_for('messages.chat_detail', receiver=p.seller_username, product_id=p.id) }}" class="btn btn-outline-primary btn-sm">💬 私信</a>
+                {% endif %}
+            {% elif current_identity == 'guest' or not current_identity %}
+                <a href="/login_page" class="btn btn-outline-warning btn-sm" title="请先登录">{{ action_icon }} {{ action_label }}</a>
+                <a href="/login_page" class="btn btn-outline-primary btn-sm" title="请先登录">💬 私信</a>
+            {% endif %}
+
+            <button class="btn btn-outline-info btn-sm" onclick="showDetail({{ p.id }})">详情</button>
+
+            {% if p.is_own and p.status == 'pending' %}
+                <form method="POST" action="{{ url_for('delete', pid=p.id) }}" class="d-inline" onsubmit="return confirm('删除？')">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">删除</button>
+                </form>
+            {% endif %}
+        {% else %}
+            {# 已售出分组 #}
+            {% if current_identity == 'student' and session.username != p.seller_username %}
+                {% if ban_until %}
+                    <span class="btn btn-outline-primary btn-sm disabled" style="opacity:0.5;cursor:not-allowed;" title="您当前处于禁言期">💬 私信</span>
+                {% else %}
+                    <a href="{{ url_for('messages.chat_detail', receiver=p.seller_username, product_id=p.id) }}" class="btn btn-outline-primary btn-sm">💬 私信</a>
+                {% endif %}
+            {% elif current_identity == 'guest' or not current_identity %}
+                <a href="/login_page" class="btn btn-outline-primary btn-sm" title="请先登录">💬 私信</a>
+            {% endif %}
+
+            <button class="btn btn-outline-info btn-sm" onclick="showDetail({{ p.id }})">详情</button>
+
+            {% if p.sold_status == 'sold' and current_identity == 'student' and session.username != p.seller_username %}
+                <a href="/evaluate/{{ p.id }}" class="btn btn-outline-warning btn-sm">⭐ 评价</a>
+            {% endif %}
+        {% endif %}
+
+    </div>
+
+</div>
+{% endmacro %}

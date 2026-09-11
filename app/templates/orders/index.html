@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的订单</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f5f5f5; padding-bottom: 70px; }
+        .orders-container { max-width: 880px; margin: 0 auto; padding: 20px 16px; }
+        .order-card { background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 18px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+        .order-meta { color: #666; font-size: 0.9rem; line-height: 1.8; }
+        .order-price { color: #dc3545; font-size: 1.1rem; font-weight: 700; }
+        .status-badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; }
+        .status-pending { background: #fff3cd; color: #664d03; }
+        .status-confirmed { background: #d1e7dd; color: #0f5132; }
+        .status-cancelled { background: #f8d7da; color: #842029; }
+        .role-badge { display: inline-block; padding: 3px 8px; border-radius: 6px; background: #e7f1ff; color: #084298; font-size: 0.75rem; }
+        .order-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+        .order-actions form { margin: 0; }
+    </style>
+{% include '_badges.html' %}
+</head>
+<body>
+<main class="orders-container">
+    <header class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">我的订单</h1>
+        <div class="d-flex gap-1 align-items-center">
+            {% from '_badges.html' import badge_link %}
+            {{ badge_link(url_for('messages.messages_list'), '💬', '消息', badges.message if badges else 0, 'btn btn-outline-secondary btn-sm') }}
+            {{ badge_link(url_for('feedback.feedback_list'), '📝', '反馈', badges.feedback if badges else 0, 'btn btn-outline-secondary btn-sm') }}
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary btn-sm">返回首页</a>
+        </div>
+    </header>
+
+    {% if orders %}
+        {% for order in orders %}
+        <article class="order-card">
+            <div class="d-flex justify-content-between align-items-start gap-3">
+                <div>
+                    <strong>{{ order.product_name }}</strong>
+                    <span class="role-badge ms-2">{{ order.perspective }}</span>
+                    {% if not order.product_exists %}
+                    <span class="badge text-bg-secondary ms-1">商品已删除</span>
+                    {% endif %}
+                </div>
+                {% if order.product_exists %}
+                <span class="order-price">¥{{ "%.2f"|format(order.price) }}</span>
+                {% endif %}
+            </div>
+
+            <div class="order-meta mt-2">
+                <div>买家：{{ order.buyer }}　卖家：{{ order.seller }}</div>
+                <div>
+                    下单时间：{{ order.created_at }}
+                    <span class="status-badge status-{{ order.status }} ms-2">{{ order.status_label }}</span>
+                </div>
+                {% if order.contact %}<div>联系方式：{{ order.contact }}</div>{% endif %}
+                {% if order.message %}<div>留言：{{ order.message }}</div>{% endif %}
+            </div>
+
+            <div class="order-actions">
+                {% if order.peer and order.peer != current_user %}
+                <a href="{{ url_for('messages.chat_detail', receiver=order.peer) }}?product_id={{ order.product_id }}"
+                   class="btn btn-primary btn-sm">💬 私信{{ '买家' if order.peer == order.buyer else '卖家' }}</a>
+                {% endif %}
+
+                {% if order.status == 'pending' and current_user == order.seller %}
+                <form method="POST" action="{{ url_for('orders.confirm_order', order_id=order.id) }}" onsubmit="return confirm('确认交易并完成订单？')">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-success btn-sm">确认交易</button>
+                </form>
+                {% endif %}
+
+                {% if order.status == 'pending' and current_user in (order.buyer, order.seller) %}
+                <form method="POST" action="{{ url_for('orders.cancel_order', order_id=order.id) }}" onsubmit="return confirm('取消订单并恢复商品在售状态？')">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">取消订单</button>
+                </form>
+                {% endif %}
+
+                {% if order.status == 'confirmed' and current_user == order.buyer and order.product_exists %}
+                <a href="{{ url_for('evaluate', pid=order.product_id) }}" class="btn btn-warning btn-sm">评价</a>
+                {% endif %}
+            </div>
+        </article>
+        {% endfor %}
+    {% else %}
+        <div class="text-center py-5 text-muted">暂无订单</div>
+    {% endif %}
+</main>
+</body>
+</html>

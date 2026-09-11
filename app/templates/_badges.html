@@ -1,0 +1,10 @@
+{# 未读角标公共片段：各页面 {% include %} 引入，避免每个模板各写一份 #}
+
+<style>
+.nav-with-badge{position:relative;}
+.nav-badge{position:absolute;top:-6px;right:-6px;background:#e74c3c;color:#fff;font-size:0.65rem;font-weight:700;min-width:18px;height:18px;line-height:18px;border-radius:9px;padding:0 5px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.2);}
+</style>
+
+{% macro badge_link(href, icon, label, count, extra_class='btn btn-light btn-sm') %}
+<a href="{{ href }}" class="{{ extra_class }} nav-with-badge">{{ icon }} {{ label }}{% if count %}<span class="nav-badge">{{ count }}</span>{% endif %}</a>
+{% endmacro %}
