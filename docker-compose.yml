@@ -1,0 +1,57 @@
+# 校园二手交易平台 - Docker Compose 一键启动
+# 用法：docker compose up -d
+# 访问：http://localhost:5000
+# 管理员账号：admin / 密码见 SECONDHAND_ADMIN_PASSWORD
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: secondhand-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword123}
+      MYSQL_DATABASE: ${SECONDHAND_DB_NAME:-secondhand_db}
+      MYSQL_USER: ${SECONDHAND_DB_USER:-secondhand}
+      MYSQL_PASSWORD: ${SECONDHAND_DB_PASSWORD:-secondhand123}
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpassword123}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - secondhand-net
+
+  web:
+    build: .
+    container_name: secondhand-web
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SECONDHAND_DB_HOST: db
+      SECONDHAND_DB_PORT: "3306"
+      SECONDHAND_DB_USER: ${SECONDHAND_DB_USER:-secondhand}
+      SECONDHAND_DB_PASSWORD: ${SECONDHAND_DB_PASSWORD:-secondhand123}
+      SECONDHAND_DB_NAME: ${SECONDHAND_DB_NAME:-secondhand_db}
+      SECONDHAND_SECRET_KEY: ${SECONDHAND_SECRET_KEY:-change-me-to-a-random-secret-key-in-production}
+      SECONDHAND_ADMIN_PASSWORD: ${SECONDHAND_ADMIN_PASSWORD:-admin123}
+      SECONDHAND_COOKIE_SECURE: "false"
+      SECONDHAND_AUTO_CREATE_DB: "true"
+      SECONDHAND_TRUST_PROXY: "true"
+    ports:
+      - "${WEB_PORT:-5000}:5000"
+    networks:
+      - secondhand-net
+
+volumes:
+  db_data:
+    name: secondhand-db-data
+
+networks:
+  secondhand-net:
+    driver: bridge

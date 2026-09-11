@@ -1,0 +1,17 @@
+# Docker 构建忽略文件
+.git
+.gitignore
+*.md
+docs/
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.env
+.env.docker
+*.tar.gz
+*.bak
+.vscode/
+.idea/
+.DS_Store
