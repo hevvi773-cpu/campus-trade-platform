@@ -161,38 +161,51 @@ app/
 ### 本地运行
 
 ```bash
-# 1. 解压代码包
-tar -xzf fix_patch_v15_no_confirm_code.tar.gz
-cd app
+git clone https://github.com/hevvi773-cpu/campus-trade-platform.git
+cd campus-trade-platform/app
 
-# 2. 安装依赖
 pip install -r requirements.txt
-
-# 3. 配置环境变量
-# 复制 .env.example 为 .env，然后修改以下配置：
-cp .env.example .env
-#   SECONDHAND_DB_HOST / PORT / USER / PASSWORD / NAME
-#   SECONDHAND_SECRET_KEY
-#   SECONDHAND_ADMIN_PASSWORD
-
-# 4. 启动开发服务器
-flask run
-# 或生产模式
-gunicorn -w 4 -b 0.0.0.0:5000 wsgi:application
+cp .env.example .env      # 填入 SECONDHAND_DB_* 与 SECONDHAND_SECRET_KEY
+flask run                 # 开发模式，默认 http://localhost:5000
 ```
 
-访问 http://localhost:5000
+首次启动会自动执行 `ensure_schema()` 建表，并保证生产环境新增列自动补全。
 
-> 首次启动会自动执行 `ensure_schema()` 创建数据库表结构（模块导入时执行，保证生产环境新列自动补全）。
+### Docker 一键运行
 
-### 生产模式运行（可选）
+仓库根目录已提供 Dockerfile 与 docker-compose.yml，会同时拉起应用与数据库：
 
 ```bash
-# 生产环境：gunicorn + systemd
+cd campus-trade-platform
+cp app/.env.example app/.env
+docker compose up -d
+docker compose logs -f app
+```
+
+### 生产模式运行
+
+```bash
 gunicorn -w 4 -b 0.0.0.0:5000 wsgi:application
 ```
 
-> 注：该地址为临时演示环境，非生产部署，不保证长期可用。
+> 注：线上演示地址为临时环境，非生产部署，不保证长期可用。
+
+## ✅ 验证与测试
+
+当前已执行的验证方式：
+
+```bash
+python -m compileall app        # 全量语法检查，23 个 Python 文件全部通过
+```
+
+- 路由与模板：启动后首页、登录页应返回 200，`/api/product` 返回完整字段
+- 交易并发：同一商品并发下单，验证行级锁生效，不出现超卖或重复下单
+- 权限矩阵：游客 / 禁言学生 / 正常学生 / 管理员四档逐一验证越权拦截
+
+规划中的自动化测试，尚未实现：
+
+- pytest 用例覆盖订单状态机与商品审核流程
+- 接口级冒烟测试，登录、发布、下单三条主链路
 
 ## 🔐 安全说明
 
